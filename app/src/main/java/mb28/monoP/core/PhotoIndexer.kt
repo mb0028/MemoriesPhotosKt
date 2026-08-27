@@ -11,6 +11,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.Size
 import androidx.core.content.FileProvider
+import androidx.exifinterface.media.ExifInterface
 import mb28.monoP.EXTRA_PATH
 import mb28.monoP.PhotoViewerActivity
 import mb28.monoP.core.Settings.inAppPhotoViewer
@@ -34,6 +35,16 @@ fun openPhoto(path: String, context: Activity) {
         context.startActivity(intent)
     }
 }
+
+fun editComment(path: String, comment: String?) {
+    val e = ExifInterface(path)
+    e.setAttribute(ExifInterface.TAG_USER_COMMENT, comment)
+    e.saveAttributes()
+}
+
+fun getComment(path: String, getNameIfNull: Boolean = true) : String =
+    ExifInterface(path).getAttribute(ExifInterface.TAG_USER_COMMENT)
+        ?: if (getNameIfNull) path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('.')) else ""
 
 data class Photo(
     val uri: Uri,

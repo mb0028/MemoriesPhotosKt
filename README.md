@@ -7,6 +7,7 @@ Gallery & Camera app for android
 
 Features:
 - 🖼️ Material 3 Expressive design
+- 🏷️ Add/Edit comments directly to image's EXIF data 
 - 📸 In-app camera using CameraX
 - 🕞 Timelapse camera for taking picture every n seconds
 - More coming soon...

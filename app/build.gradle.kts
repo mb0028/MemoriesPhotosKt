@@ -44,6 +44,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.exifinterface)
+
     // CameraX core library using the camera2 implementation
     val camerax_version = "1.7.0-alpha03"
     // The following line is optional, as the core library is included indirectly by camera-camera2

@@ -10,4 +10,6 @@
     <string name="trash">Trash</string>
     <string name="favorites">Favorites</string>
     <string name="needs_all_files_access">App can\'t run without all files access.</string>
+    <string name="delete">Delete</string>
+    <string name="comment">Comment</string>
 </resources>
