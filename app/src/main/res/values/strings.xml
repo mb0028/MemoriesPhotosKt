@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Memories Photos</string>
+    <string name="photos">Photos</string>
+    <string name="more">More</string>
+    <string name="albums">Albums</string>
+    <string name="title_activity_photo_viewer">Photo Viewer</string>
+    <string name="title_activity_camera">CameraP</string>
+    <string name="title_activity_settings">Settings Activity</string>
+    <string name="archive">Archive</string>
+    <string name="trash">Trash</string>
+    <string name="favorites">Favorites</string>
+    <string name="needs_all_files_access">App can\'t run without all files access.</string>
+</resources>
