@@ -3,6 +3,7 @@ package mb28.monoP
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -31,6 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.drawable.IconCompat
 import androidx.core.view.WindowCompat
 import mb28.crystalHomeKt.ui.icons.settings
 import mb28.monoP.core.PhotoIndexer.getPhotos
@@ -54,6 +58,13 @@ class MainActivity : ComponentActivity() {
         controller.isAppearanceLightStatusBars = true
         controller.isAppearanceLightNavigationBars = true
         window.isNavigationBarContrastEnforced = false
+
+        val shortcut = ShortcutInfoCompat.Builder(this, "settings")
+            .setShortLabel("Settings")
+            .setIcon(IconCompat.createWithResource(this, R.mipmap.shortcut_settings_icon))
+            .setIntent(Intent(Intent.ACTION_SHOW_APP_INFO))
+            .build()
+        ShortcutManagerCompat.pushDynamicShortcut(this, shortcut)
 
         requestAllFilesAccessOrFinish()
         load()

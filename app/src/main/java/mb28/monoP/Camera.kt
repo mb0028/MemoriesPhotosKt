@@ -37,6 +37,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.drawable.IconCompat
 import androidx.core.view.WindowCompat
 import mb28.crystalHomeKt.ui.icons.arrow_back
 import mb28.crystalHomeKt.ui.icons.settings
@@ -55,6 +58,14 @@ class Camera : ComponentActivity() {
         controller.isAppearanceLightStatusBars = true
         controller.isAppearanceLightNavigationBars = true
         window.isNavigationBarContrastEnforced = false
+
+        val shortcut = ShortcutInfoCompat.Builder(this, "cam_settings")
+            .setShortLabel("Camera Settings")
+            .setIcon(IconCompat.createWithResource(this, R.mipmap.shortcut_settings_icon))
+            .setIntent(Intent(Intent.ACTION_SHOW_APP_INFO).putExtra(EXTRA_SHOW_CAMERA_SETTINGS, true))
+            .setActivity(componentName)
+            .build()
+        ShortcutManagerCompat.pushDynamicShortcut(this, shortcut)
 
         requestAllFilesAccessOrFinish()
         load()
