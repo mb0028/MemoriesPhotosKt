@@ -1,75 +1,97 @@
 package mb28.monoP
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalZeroShutterLag
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.view.WindowCompat
-import mb28.crystalHomeKt.ui.icons.arrow_back
-import mb28.crystalHomeKt.ui.icons.settings
+import androidx.exifinterface.media.ExifInterface
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asExecutor
+import kotlinx.coroutines.launch
+import mb28.monoP.core.Settings
 import mb28.monoP.core.Settings.load
 import mb28.monoP.core.Settings.requestAllFilesAccessOrFinish
 import mb28.monoP.icons.flip_camera_android
-import mb28.monoP.icons.photo_camera
 import mb28.monoP.icons.photo_prints
-import mb28.monoP.icons.settings_photo_camera
+import mb28.monoP.ui.camera.CameraAppBar
+import mb28.monoP.ui.camera.CameraBgShape
+import mb28.monoP.ui.camera.CameraPermissionPage
 import mb28.monoP.ui.components.ShutterButton
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
+import java.io.File
+
+private const val MAKER_NOTE_P = "Captured with Memories Photos"
+private lateinit var cameraController: LifecycleCameraController
 
 class Camera : ComponentActivity() {
+    @androidx.annotation.OptIn(ExperimentalZeroShutterLag::class)
+    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        val controller = WindowCompat.getInsetsController(window, window.decorView)
-        controller.isAppearanceLightStatusBars = true
-        controller.isAppearanceLightNavigationBars = true
-        window.isNavigationBarContrastEnforced = false
-
-        val shortcut = ShortcutInfoCompat.Builder(this, "cam_settings")
-            .setShortLabel("Camera Settings")
-            .setIcon(IconCompat.createWithResource(this, R.mipmap.shortcut_settings_icon))
-            .setIntent(Intent(Intent.ACTION_SHOW_APP_INFO).putExtra(EXTRA_SHOW_CAMERA_SETTINGS, true))
-            .setActivity(componentName)
-            .build()
-        ShortcutManagerCompat.pushDynamicShortcut(this, shortcut)
-
+        setupWindowAndShortcuts()
         requestAllFilesAccessOrFinish()
         load()
-
         super.onCreate(savedInstanceState)
 
         val permission = checkSelfPermission(Manifest.permission.CAMERA)
@@ -77,108 +99,206 @@ class Camera : ComponentActivity() {
             requestPermissions(arrayOf(Manifest.permission.CAMERA), 0)
         }
 
+        // Cam ctrl
         val previewView = PreviewView(this)
-        val cameraController = LifecycleCameraController(baseContext)
+        cameraController = LifecycleCameraController(baseContext)
         cameraController.bindToLifecycle(this)
-        cameraController.cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
         previewView.controller = cameraController
 
         setContent {
             MemoriesPhotosTheme {
+                val interactionSource = remember { MutableInteractionSource() }
+                val isShutterPressed by interactionSource.collectIsPressedAsState()
+                var aspectX by remember { mutableStateOf(1.dp) }
+                var aspectY by remember { mutableStateOf(1.dp) }
+                val uiAlpha: Float by animateFloatAsState(
+                    if (isShutterPressed) 0f else 0.75f
+                )
+
+                fun updateAspect(asp: Int) {
+//                    aspectX = when(asp) {
+//                        0 -> 300.dp
+//                        1 -> (900 / 4).dp
+//                        2 -> Dp.Infinity
+//                        3 -> 200.dp
+//                        else -> throw Exception()
+//                    }
+//                    aspectY = when(asp) {
+//                        0 -> 400.dp
+//                        1 -> (1600 / 4).dp
+//                        2 -> Dp.Infinity
+//                        3 -> 200.dp
+//                        else -> throw Exception()
+//                    }
+                }
+//                updateAspect(Settings.cameraAspect)
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
-                        TopAppBar(
-                            {},
-                            navigationIcon = {
-                                IconButton(
-                                    { finish() },
-                                    colors = IconButtonDefaults.iconButtonColors().copy(
-                                        MaterialTheme.colorScheme.surfaceContainerHigh
-                                    ),
-                                    modifier = Modifier.padding(horizontal = 15.dp)
-                                ) {
-                                    Icon(
-                                        arrow_back,
-                                        contentDescription = null
-                                    )
-                                }
-                            },
-                            actions = {
-                                IconButton({
-                                    val intent = Intent(this@Camera, SettingsActivity::class.java)
-                                        .putExtra(EXTRA_SHOW_CAMERA_SETTINGS, true)
-                                    startActivity(intent)
-                                }) { Icon(settings_photo_camera, null) }
-                            }
-                        )
+                        CameraAppBar(this, cameraController, Modifier.alpha(uiAlpha)) {
+                            updateAspect(it)
+                        }
                     },
                     bottomBar = {
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(
-                                    bottom = WindowInsets.navigationBars.asPaddingValues()
-                                        .calculateBottomPadding() + 5.dp
-                                ),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            val context = LocalActivity.current!!
-                            IconButton(
-                                {
-                                    context.startActivity(Intent(context, MainActivity::class.java)
-                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                                },
-                                modifier = Modifier.size(75.dp)
-                            ) {
-                                Icon(
-                                    photo_prints,
-                                    null,
-                                    modifier = Modifier.fillMaxSize(0.65f)
-                                )
-                            }
-                            ShutterButton { }
-                            IconButton(
-                                {
-
-                                },
-                                modifier = Modifier.size(75.dp)
-                            ) {
-                                Icon(
-                                    flip_camera_android,
-                                    null,
-                                    modifier = Modifier.fillMaxSize(0.65f)
-                                )
-                            }
-                        }
+                        ShutterRow(interactionSource, uiAlpha)
                     }
-                ) { innerPadding -> innerPadding
+                ) { i -> i
                     if (permission == PackageManager.PERMISSION_GRANTED) {
+                        AndroidView(
+                            { previewView },
+                            modifier = Modifier
+                                .fillMaxSize()
+                        )
 
-                    } else { PermissionPage() }
+                    } else {
+                        CameraPermissionPage()
+                    }
                 }
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        cameraController.imageCaptureMode = Settings.imageCaptureMode
+        cameraController.imageCaptureFlashMode = Settings.imageCaptureFlashMode
+        when (Settings.startCameraMode) {
+            0 -> cameraController.cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            1 -> cameraController.cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
         }
     }
 }
 
 @Composable
-fun PermissionPage() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .wrapContentSize()
-            .widthIn(max = 480.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+fun ShutterRow(interactionSource:  MutableInteractionSource, uiAlpha: Float) {
+    val context = LocalActivity.current!!
+    val scope = rememberCoroutineScope()
+    var capturedPath by remember { mutableStateOf("") }
+    val bPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 5.dp
+    var lastComment by remember { mutableStateOf("") }
+
+    Box(
+        contentAlignment = Alignment.BottomCenter
     ) {
-        Text(
-            "Camera permission is denied.",
-            textAlign = TextAlign.Center
+        CameraBgShape(
+            Modifier
+                .offset(y = 210.dp - bPadding)
+                .alpha(uiAlpha)
         )
-        Spacer(Modifier.height(16.dp))
-        Button(onClick = {}) {
-            Text("Open Settings")
+        if (Settings.addCommentAfterCapture) {
+            TextField(
+                lastComment,
+                { lastComment = it },
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedContainerColor = Color.Transparent,
+                    cursorColor = Color.Transparent
+                ),
+                textStyle = TextStyle(
+                    textAlign = TextAlign.Center
+                ),
+                singleLine = true,
+                placeholder = {
+                    Text(
+                        "write comment...",
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Ascii,
+                ),
+                modifier = Modifier
+                    .width(220.dp)
+                    .height(50.dp)
+                    .offset(y = -(200).dp + bPadding)
+            )
+        }
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = bPadding),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                {
+                    context.startActivity(
+                        Intent(context, MainActivity::class.java)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
+                },
+                modifier = Modifier.size(65.dp)
+            ) {
+                Icon(
+                    photo_prints,
+                    null,
+                    modifier = Modifier.fillMaxSize(0.65f)
+                )
+            }
+            ShutterButton(interactionSource) {
+                scope.launch {
+                    val outputOptions = ImageCapture.OutputFileOptions.Builder(
+                        File(Settings.appFolder, "Photo ${System.currentTimeMillis()}.jpg")
+                    ).build()
+
+                    cameraController.takePicture(
+                        outputOptions,
+                        Dispatchers.Main.immediate.asExecutor(),
+                        object : ImageCapture.OnImageSavedCallback {
+                            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                                capturedPath = outputFileResults.savedUri!!.path!!
+                                Toast.makeText(context, "Saved: $capturedPath", Toast.LENGTH_LONG)
+                                    .show()
+                                val e = ExifInterface(capturedPath)
+                                e.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, MAKER_NOTE_P)
+                                if (Settings.addCommentAfterCapture && lastComment.isNotBlank()) {
+                                    e.setAttribute(ExifInterface.TAG_USER_COMMENT, lastComment)
+                                }
+                                e.saveAttributes()
+                            }
+
+                            override fun onError(e: ImageCaptureException) {
+                                Toast.makeText(context, "Failed: $e", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    )
+                }
+            }
+            IconButton(
+                {
+                    when (cameraController.cameraSelector) {
+                        CameraSelector.DEFAULT_BACK_CAMERA -> cameraController.cameraSelector =
+                            CameraSelector.DEFAULT_FRONT_CAMERA
+
+                        CameraSelector.DEFAULT_FRONT_CAMERA -> cameraController.cameraSelector =
+                            CameraSelector.DEFAULT_BACK_CAMERA
+                    }
+                },
+                modifier = Modifier.size(65.dp)
+            ) {
+                Icon(
+                    flip_camera_android,
+                    null,
+                    modifier = Modifier.fillMaxSize(0.65f)
+                )
+            }
         }
     }
+}
+
+private fun Activity.setupWindowAndShortcuts() {
+    val controller = WindowCompat.getInsetsController(window, window.decorView)
+    controller.isAppearanceLightStatusBars = true
+    controller.isAppearanceLightNavigationBars = true
+    window.isNavigationBarContrastEnforced = false
+
+    val shortcut = ShortcutInfoCompat.Builder(this, "cam_settings")
+        .setShortLabel("Camera Settings")
+        .setIcon(IconCompat.createWithResource(this, R.mipmap.shortcut_settings_icon))
+        .setIntent(Intent(Intent.ACTION_SHOW_APP_INFO).putExtra(EXTRA_SHOW_CAMERA_SETTINGS, true))
+        .setActivity(componentName)
+        .build()
+    ShortcutManagerCompat.pushDynamicShortcut(this, shortcut)
 }

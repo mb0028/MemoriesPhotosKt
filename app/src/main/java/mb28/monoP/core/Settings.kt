@@ -27,6 +27,10 @@ object Settings {
     var lockFocusWithShutter = true
     var lockExposureWithShutter = true
     var addCommentAfterCapture = false
+    var imageCaptureMode = 1
+    var imageCaptureFlashMode = 2
+    var startCameraMode = 0
+    var cameraAspect = 0
 
     fun load() {
         favorites.clear()
@@ -58,6 +62,10 @@ object Settings {
                     s.startsWith("[Cam Lock Focus]") -> lockFocusWithShutter = s.removePrefix("[Cam Lock Focus]").toBooleanStrict()
                     s.startsWith("[Cam Lock Expo]") -> lockExposureWithShutter = s.removePrefix("[Cam Lock Expo]").toBooleanStrict()
                     s.startsWith("[Cam Add Comment]") -> addCommentAfterCapture = s.removePrefix("[Cam Add Comment]").toBooleanStrict()
+                    s.startsWith("[Cam Capture Mode]") -> imageCaptureMode = s.removePrefix("[Cam Capture Mode]").toInt().coerceIn(0, 2)
+                    s.startsWith("[Cam Flash Mode]") -> imageCaptureFlashMode = s.removePrefix("[Cam Flash Mode]").toInt().coerceIn(0, 4)
+                    s.startsWith("[Cam Start Mode]") -> startCameraMode = s.removePrefix("[Cam Start Mode]").toInt().coerceIn(0, 2)
+                    s.startsWith("[Cam Aspect]") -> cameraAspect = s.removePrefix("[Cam Aspect]").toInt().coerceIn(0, 4)
                 }
             }
         } else {
@@ -81,6 +89,10 @@ object Settings {
         data += "[Cam Lock Focus]$lockFocusWithShutter\n"
         data += "[Cam Lock Expo]$lockExposureWithShutter\n"
         data += "[Cam Add Comment]$addCommentAfterCapture\n"
+        data += "[Cam Capture Mode]$imageCaptureMode\n"
+        data += "[Cam Flash Mode]$imageCaptureFlashMode\n"
+        data += "[Cam Start Mode]$startCameraMode\n"
+        data += "[Cam Aspect]$cameraAspect\n"
 
         data += "\n[Favorites]\n"
         favorites.forEach {

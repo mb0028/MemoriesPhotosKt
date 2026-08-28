@@ -4,8 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
@@ -15,18 +19,24 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SegmentedListItem
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,7 +46,11 @@ import mb28.monoP.core.Settings
 import mb28.monoP.core.Settings.requestAllFilesAccessOrFinish
 import mb28.monoP.core.getComment
 import mb28.monoP.icons.add_2
+import mb28.monoP.icons.camera
 import mb28.monoP.icons.info
+import mb28.monoP.icons.photo_camera
+import mb28.monoP.icons.photo_camera_back
+import mb28.monoP.icons.photo_camera_front
 import mb28.monoP.ui.components.EasySegmentedListItem
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
 
@@ -237,12 +251,99 @@ fun CameraSettings(paddingValues: PaddingValues) {
                     when(i) {
                         0 -> "Lock focus when holding shutter"
                         1 -> "Lock exposure when holding shutter"
-                        2 -> "Show add comment popup after capturing"
+                        2 -> "Show write comment input field and save comment to image Exif"
                         else -> throw Exception()
                     }
                 )
             }
         }
+
+        val segmentedSectionCount = 2
+        item { Spacer(Modifier.height(15.dp)) }
+        item {
+            val cameraDirections = listOf("Back", "Front")
+            var cameraDirectionsI by remember { mutableIntStateOf(Settings.startCameraMode) }
+            SegmentedListItem(
+                shapes = ListItemDefaults.segmentedShapes(0, segmentedSectionCount),
+                modifier = Modifier.padding(bottom = 2.dp),
+                ) {
+                Column {
+                    Text(
+                        "Start camera in",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                    SingleChoiceSegmentedButtonRow(
+                        Modifier.fillMaxWidth()
+                    ) {
+                        cameraDirections.forEachIndexed { index, t ->
+                            SegmentedButton(
+                                selected = cameraDirectionsI == index,
+                                shape = SegmentedButtonDefaults.itemShape(index, 2),
+                                icon = {
+                                    Icon(
+                                        when(index) {
+                                            0 -> photo_camera_back
+                                            else -> photo_camera_front
+                                        },
+                                        null
+                                    )
+                                },
+                                onClick = {
+                                    cameraDirectionsI = index
+                                    Settings.startCameraMode = index
+                                    Settings.save()
+                                }
+                            ) {
+                                Text(t)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            val seg = listOf("Maximize\nQuality", "Minimize\nLatency", "0 Shutter\nLag")
+            var segI by remember { mutableIntStateOf(Settings.imageCaptureMode) }
+            SegmentedListItem(
+                shapes = ListItemDefaults.segmentedShapes(1, segmentedSectionCount),
+                modifier = Modifier.padding(bottom = 2.dp),
+            ) {
+                Column {
+                    Text(
+                        "Image Capture mode",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                    SingleChoiceSegmentedButtonRow(
+                        Modifier.fillMaxWidth()
+                    ) {
+                        seg.forEachIndexed { index, t ->
+                            SegmentedButton(
+                                selected = segI == index,
+                                shape = SegmentedButtonDefaults.itemShape(index, 3),
+                                onClick = {
+                                    segI = index
+                                    Settings.imageCaptureMode = index
+                                    Settings.save()
+                                }
+                            ) {
+                                Text(t)
+                            }
+                        }
+                    }
+                    Text(
+                        "- Maximize Quality: Better quality but images may take longer to capture. larger file size\n" +
+                            "- Minimize Latency: Balance\n" +
+                                "- 0 Shutter Lag: Better latency while keeping good image quality (Experimental in CameraX)",
+                        modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                        fontSize = 14.sp
+                    )
+                }
+            }
+        }
+
     }
 }
 

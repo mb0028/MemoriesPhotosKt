@@ -82,7 +82,7 @@ object PhotoIndexer {
                 photosList += Photo(
                     contentUri,
                     path,
-                    cursor.getString(dmc),
+                    cursor.getString(dmc) ?: "NULL",
                     id
                 )
             }
