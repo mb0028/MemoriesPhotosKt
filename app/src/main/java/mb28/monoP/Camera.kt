@@ -27,14 +27,20 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import mb28.crystalHomeKt.ui.icons.arrow_back
+import mb28.crystalHomeKt.ui.icons.settings
+import mb28.monoP.core.Settings.load
 import mb28.monoP.core.Settings.requestAllFilesAccessOrFinish
 import mb28.monoP.icons.photo_camera
 import mb28.monoP.icons.photo_prints
@@ -49,6 +55,7 @@ class Camera : ComponentActivity() {
         window.isNavigationBarContrastEnforced = false
 
         requestAllFilesAccessOrFinish()
+        load()
 
         super.onCreate(savedInstanceState)
 
@@ -67,6 +74,32 @@ class Camera : ComponentActivity() {
             MemoriesPhotosTheme {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
+                    topBar = {
+                        TopAppBar(
+                            {},
+                            navigationIcon = {
+                                IconButton(
+                                    { finish() },
+                                    colors = IconButtonDefaults.iconButtonColors().copy(
+                                        MaterialTheme.colorScheme.surfaceContainerHigh
+                                    ),
+                                    modifier = Modifier.padding(horizontal = 15.dp)
+                                ) {
+                                    Icon(
+                                        arrow_back,
+                                        contentDescription = null
+                                    )
+                                }
+                            },
+                            actions = {
+                                IconButton({
+                                    val intent = Intent(this@Camera, SettingsActivity::class.java)
+                                        .putExtra(EXTRA_SHOW_CAMERA_SETTINGS, true)
+                                    startActivity(intent)
+                                }) { Icon(settings, null) }
+                            }
+                        )
+                    },
                     bottomBar = {
                         Row(
                             Modifier

@@ -18,7 +18,15 @@ object Settings {
     val favorites = mutableListOf<String>()
     var specialSectionsCount = 10
     var inAppPhotoViewer = true
+    var inAppCamera = true
     var allowRotationGesture = true
+    var onlyShowDCIM = true
+    var trashInstead = true
+    var useMediaStoreDelete = false
+
+    var lockFocusWithShutter = true
+    var lockExposureWithShutter = true
+    var addCommentAfterCapture = false
 
     fun load() {
         favorites.clear()
@@ -42,6 +50,14 @@ object Settings {
                     }
                     s.startsWith("[SSC]") -> specialSectionsCount = s.removePrefix("[SSC]").toInt()
                     s.startsWith("[ROTA]") -> allowRotationGesture = s.removePrefix("[ROTA]").toBooleanStrict()
+                    s.startsWith("[OSDCIM]") -> onlyShowDCIM = s.removePrefix("[OSDCIM]").toBooleanStrict()
+                    s.startsWith("[InAppPV]") -> inAppPhotoViewer = s.removePrefix("[InAppPV]").toBooleanStrict()
+                    s.startsWith("[InAppCam]") -> inAppCamera = s.removePrefix("[InAppCam]").toBooleanStrict()
+                    s.startsWith("[IT]") -> trashInstead = s.removePrefix("[IT]").toBooleanStrict()
+                    s.startsWith("[MSD]") -> useMediaStoreDelete = s.removePrefix("[MSD]").toBooleanStrict()
+                    s.startsWith("[Cam Lock Focus]") -> lockFocusWithShutter = s.removePrefix("[Cam Lock Focus]").toBooleanStrict()
+                    s.startsWith("[Cam Lock Expo]") -> lockExposureWithShutter = s.removePrefix("[Cam Lock Expo]").toBooleanStrict()
+                    s.startsWith("[Cam Add Comment]") -> addCommentAfterCapture = s.removePrefix("[Cam Add Comment]").toBooleanStrict()
                 }
             }
         } else {
@@ -52,7 +68,27 @@ object Settings {
     }
 
     fun save() {
+        var data = "[Settings]\n"
+        data += "[InAppCam]$inAppCamera\n"
+        data += "[InAppPV]$inAppPhotoViewer\n"
+        data += "[ROTA]$allowRotationGesture\n"
+        data += "[OSDCIM]$onlyShowDCIM\n"
+        data += "[IT]$trashInstead\n"
+        data += "[MSD]$useMediaStoreDelete\n"
+        data += "[SSC]$specialSectionsCount\n"
 
+        data += "\n[Camera Settings]\n"
+        data += "[Cam Lock Focus]$lockFocusWithShutter\n"
+        data += "[Cam Lock Expo]$lockExposureWithShutter\n"
+        data += "[Cam Add Comment]$addCommentAfterCapture\n"
+
+        data += "\n[Favorites]\n"
+        favorites.forEach {
+            data += "[FAV]$it\n"
+        }
+
+        val file = File(settingsFile)
+        file.writeText(data)
     }
 
     fun Activity.requestAllFilesAccessOrFinish() {

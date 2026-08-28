@@ -4,26 +4,99 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedListItem
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import mb28.crystalHomeKt.ui.icons.arrow_back
+import mb28.monoP.core.Settings
+import mb28.monoP.core.Settings.requestAllFilesAccessOrFinish
+import mb28.monoP.core.getComment
+import mb28.monoP.icons.add_2
+import mb28.monoP.ui.components.EasySegmentedListItem
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
+
+const val EXTRA_SHOW_CAMERA_SETTINGS = "EXTRA_SHOW_CAMERA_SETTINGS"
 
 class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        controller.isAppearanceLightStatusBars = true
+        controller.isAppearanceLightNavigationBars = true
+        window.isNavigationBarContrastEnforced = false
+
+        requestAllFilesAccessOrFinish()
+        Settings.load()
+
+        val showCameraSettings = intent.getBooleanExtra(EXTRA_SHOW_CAMERA_SETTINGS, false)
+
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             MemoriesPhotosTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    topBar = {
+                        LargeTopAppBar(
+                            {
+                                Text("Settings")
+                            },
+                            colors = TopAppBarDefaults.topAppBarColors(
+                                containerColor = Color.Transparent
+                            ),
+                            navigationIcon = {
+                                IconButton(
+                                    { finish() },
+                                    colors = IconButtonDefaults.iconButtonColors().copy(
+                                        MaterialTheme.colorScheme.surfaceContainerHigh
+                                    ),
+                                    modifier = Modifier.padding(horizontal = 15.dp)
+                                ) {
+                                    Icon(
+                                        arrow_back,
+                                        contentDescription = null
+                                    )
+                                }
+                            },
+                            actions = {
+                                IconButton({
+
+                                }) {
+                                    Icon(add_2, null)
+                                }
+                            }
+                        )
+                    }
+                ) { i ->
+                    if (showCameraSettings) {
+                        CameraSettings(i)
+                    }
+                    else {
+                        MainSettings(i)
+                    }
                 }
             }
         }
@@ -31,17 +104,150 @@ class SettingsActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun MainSettings(paddingValues: PaddingValues) {
+    val count = 5 // TODO: include msd in settings
+    var osdcim by remember { mutableStateOf(Settings.onlyShowDCIM) }
+    var rotate by remember { mutableStateOf(Settings.allowRotationGesture) }
+    var iapp by remember { mutableStateOf(Settings.inAppPhotoViewer) }
+    var iappcam by remember { mutableStateOf(Settings.inAppCamera) }
+    var ti by remember { mutableStateOf(Settings.trashInstead) }
+    var msd by remember { mutableStateOf(Settings.useMediaStoreDelete) }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview2() {
-    MemoriesPhotosTheme {
-        Greeting("Android")
+    LazyColumn(
+        contentPadding = paddingValues,
+        modifier = Modifier.padding(15.dp)
+    ) {
+        items(count) { i ->
+            SegmentedListItem(
+                shapes = ListItemDefaults.segmentedShapes(i, count),
+                modifier = Modifier.padding(bottom = 2.dp),
+                trailingContent = {
+                    Switch(
+                        when(i) {
+                            0 -> rotate
+                            1 -> iappcam
+                            2 -> iapp
+                            3 -> osdcim
+                            4 -> ti
+                            5 -> msd
+                            else -> throw Exception()
+                        },
+                        { v ->
+                            when(i) {
+                                0 -> {
+                                    rotate = v
+                                    Settings.allowRotationGesture = v
+                                }
+                                1 -> {
+                                    iappcam = v
+                                    Settings.inAppCamera = v
+                                }
+                                2 -> {
+                                    iapp = v
+                                    Settings.inAppPhotoViewer = v
+                                }
+                                3 -> {
+                                    osdcim = v
+                                    Settings.onlyShowDCIM = v
+                                }
+                                4 -> {
+                                    ti = v
+                                    Settings.trashInstead = v
+                                }
+                                5 -> {
+                                    msd = v
+                                    Settings.useMediaStoreDelete = v
+                                }
+                            }
+                            Settings.save()
+                        },
+                        modifier = Modifier.padding(vertical = 10.dp),
+                        enabled = when(i) {
+                            0 -> iapp
+                            5 -> ti
+                            else -> true
+                        },
+                    )
+                },
+                onClick = {}
+            ) {
+                Text(
+                    when(i) {
+                        0 -> "Allow rotation in image viewer"
+                        1 -> "In-app camera"
+                        2 -> "In-app image viewer"
+                        3 -> "Only show DCIM folder"
+                        4 -> "Trash instead of delete"
+                        5 -> "Use MediaStore for deleting"
+                        else -> throw Exception()
+                    }
+                )
+            }
+        }
     }
 }
+
+@Composable
+fun CameraSettings(paddingValues: PaddingValues) {
+    val count = 3
+    var lf by remember { mutableStateOf(Settings.lockFocusWithShutter) }
+    var le by remember { mutableStateOf(Settings.lockExposureWithShutter) }
+    var ac by remember { mutableStateOf(Settings.addCommentAfterCapture) }
+
+    LazyColumn(
+        contentPadding = paddingValues,
+        modifier = Modifier.padding(15.dp)
+    ) {
+        items(count) { i ->
+            SegmentedListItem(
+                shapes = ListItemDefaults.segmentedShapes(i, count),
+                modifier = Modifier.padding(bottom = 2.dp),
+                trailingContent = {
+                    Switch(
+                        when(i) {
+                            0 -> lf
+                            1 -> le
+                            2 -> ac
+                            else -> throw Exception()
+                        },
+                        { v ->
+                            when(i) {
+                                0 -> {
+                                    lf = v
+                                    Settings.lockFocusWithShutter = v
+                                }
+                                1 -> {
+                                    le = v
+                                    Settings.lockExposureWithShutter = v
+                                }
+                                2 -> {
+                                    ac = v
+                                    Settings.addCommentAfterCapture = v
+                                }
+                            }
+                            Settings.save()
+                        },
+                        modifier = Modifier.padding(vertical = 10.dp),
+                    )
+                },
+                onClick = {}
+            ) {
+                Text(
+                    when(i) {
+                        0 -> "Lock focus when holding shutter"
+                        1 -> "Lock exposure when holding shutter"
+                        2 -> "Show add comment popup after capturing"
+                        else -> throw Exception()
+                    }
+                )
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
