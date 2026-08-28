@@ -18,6 +18,7 @@ object Settings {
     val favorites = mutableListOf<String>()
     var specialSectionsCount = 10
     var inAppPhotoViewer = true
+    var allowRotationGesture = true
 
     fun load() {
         favorites.clear()
@@ -40,6 +41,7 @@ object Settings {
                         }
                     }
                     s.startsWith("[SSC]") -> specialSectionsCount = s.removePrefix("[SSC]").toInt()
+                    s.startsWith("[ROTA]") -> allowRotationGesture = s.removePrefix("[ROTA]").toBooleanStrict()
                 }
             }
         } else {
