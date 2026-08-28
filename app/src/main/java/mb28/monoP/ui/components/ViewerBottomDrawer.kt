@@ -45,6 +45,13 @@ import mb28.crystalHomeKt.ui.icons.heart_plus
 import mb28.monoP.R
 import mb28.monoP.core.Settings
 import mb28.monoP.icons.add_2
+import mb28.monoP.icons.camera
+import mb28.monoP.icons.comic_bubble
+import mb28.monoP.icons.comment
+import mb28.monoP.icons.draw
+import mb28.monoP.icons.lens_blur
+import mb28.monoP.icons.my_location
+import mb28.monoP.icons.pageless
 import mb28.monoP.icons.photo_camera
 import mb28.monoP.icons.photo_prints
 import java.io.File
@@ -88,7 +95,7 @@ fun ViewerBottomDrawer(path: String) {
                 IconButton({
 
                 }) {
-                    Icon(add_2, null)
+                    Icon(draw, null)
                 }
                 IconButton({
 
@@ -98,7 +105,7 @@ fun ViewerBottomDrawer(path: String) {
                 IconButton({
 
                 }) {
-                    Icon(add_2, null)
+                    Icon(comment, null)
                 }
                 IconButton({
 
@@ -125,7 +132,7 @@ fun ViewerBottomDrawer(path: String) {
                         val alt = exif.getAttributeDouble(ExifInterface.TAG_GPS_LONGITUDE, -99.0)
                         if (ll != null) {
                             EasySegmentedListItem(
-                                photo_prints,
+                                my_location,
                                 "Latitude: ${ll[0]}\nLongitude: ${ll[1]}"
                                         + "\nAltitude: ${if (alt != -99.0) alt else "null"}",
                                 index = 0,
@@ -183,20 +190,20 @@ fun ViewerBottomDrawer(path: String) {
                         val cmt = exif.getAttribute(ExifInterface.TAG_USER_COMMENT)
                         if (!cmt.isNullOrBlank()) {
                             EasySegmentedListItem(
-                                coffee,
+                                comic_bubble,
                                 "Comment: $cmt",
                                 index = 1,
                                 count
                             ) { }
                         }
                         EasySegmentedListItem(
-                            photo_prints,
+                            pageless,
                             "$mb mb\n${x}x$y • $mp MP",
                             index = 2,
                             count
                         ) { }
                         EasySegmentedListItem(
-                            photo_prints,
+                            camera,
                             "${exif.getAttribute(ExifInterface.TAG_F_NUMBER)}f"
                                     + " • ${exif.getAttributeDouble(ExifInterface.TAG_FOCAL_LENGTH, -99.0)} mm"
                                     + " • ${exif.getAttributeDouble(ExifInterface.TAG_EXPOSURE_BIAS_VALUE, -99.0)}ev"
@@ -243,7 +250,7 @@ fun ViewerBottomDrawer(path: String) {
                             count
                         ) { }
                         EasySegmentedListItem(
-                            photo_prints,
+                            lens_blur,
                             "Lens Make: ${exif.getAttribute(ExifInterface.TAG_LENS_MAKE)}"
                                     + "\nLens Model: ${exif.getAttribute(ExifInterface.TAG_LENS_MODEL)}"
                                     + "\nLens Specification: ${exif.getAttribute(ExifInterface.TAG_LENS_SPECIFICATION)}"

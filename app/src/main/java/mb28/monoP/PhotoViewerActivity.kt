@@ -68,11 +68,6 @@ class PhotoViewerActivity : ComponentActivity() {
                     }
                 ) { i ->
                     PinchToZoomView(path = photo.asImageBitmap(), Modifier.padding(top = i.calculateTopPadding()))
-//                    Image(
-//                        photo.asImageBitmap(),
-//                        null,
-//                        Modifier.fillMaxSize()
-//                    )
                 }
             }
         }

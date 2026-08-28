@@ -42,8 +42,10 @@ import mb28.crystalHomeKt.ui.icons.arrow_back
 import mb28.crystalHomeKt.ui.icons.settings
 import mb28.monoP.core.Settings.load
 import mb28.monoP.core.Settings.requestAllFilesAccessOrFinish
+import mb28.monoP.icons.flip_camera_android
 import mb28.monoP.icons.photo_camera
 import mb28.monoP.icons.photo_prints
+import mb28.monoP.icons.settings_photo_camera
 import mb28.monoP.ui.components.ShutterButton
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
 
@@ -96,7 +98,7 @@ class Camera : ComponentActivity() {
                                     val intent = Intent(this@Camera, SettingsActivity::class.java)
                                         .putExtra(EXTRA_SHOW_CAMERA_SETTINGS, true)
                                     startActivity(intent)
-                                }) { Icon(settings, null) }
+                                }) { Icon(settings_photo_camera, null) }
                             }
                         )
                     },
@@ -133,7 +135,7 @@ class Camera : ComponentActivity() {
                                 modifier = Modifier.size(75.dp)
                             ) {
                                 Icon(
-                                    photo_camera,
+                                    flip_camera_android,
                                     null,
                                     modifier = Modifier.fillMaxSize(0.65f)
                                 )

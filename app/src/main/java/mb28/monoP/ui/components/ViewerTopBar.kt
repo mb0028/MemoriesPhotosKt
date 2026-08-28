@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import mb28.crystalHomeKt.ui.icons.arrow_back
 import mb28.monoP.core.getComment
 import mb28.monoP.icons.add_2
+import mb28.monoP.icons.more_vert
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +27,7 @@ fun ViewerTopAppBar(path: String, activity: Activity) {
         {
             Text(
                 getComment(path),
+                maxLines = 3,
                 fontSize = 18.sp
             )
         },
@@ -50,7 +52,7 @@ fun ViewerTopAppBar(path: String, activity: Activity) {
             IconButton({
 
             }) {
-                Icon(add_2, null)
+                Icon(more_vert, null)
             }
         }
     )

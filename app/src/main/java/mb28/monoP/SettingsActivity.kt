@@ -36,6 +36,7 @@ import mb28.monoP.core.Settings
 import mb28.monoP.core.Settings.requestAllFilesAccessOrFinish
 import mb28.monoP.core.getComment
 import mb28.monoP.icons.add_2
+import mb28.monoP.icons.info
 import mb28.monoP.ui.components.EasySegmentedListItem
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
 
@@ -85,7 +86,7 @@ class SettingsActivity : ComponentActivity() {
                                 IconButton({
 
                                 }) {
-                                    Icon(add_2, null)
+                                    Icon(info, null)
                                 }
                             }
                         )
