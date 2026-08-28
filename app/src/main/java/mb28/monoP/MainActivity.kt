@@ -106,7 +106,9 @@ class MainActivity : ComponentActivity() {
                     floatingActionButton = {
                         FloatingActionButton(
                             {
-                                startActivity(Intent(this, Camera::class.java))
+                                val intent = Intent(this, Camera::class.java)
+                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                startActivity(intent)
                             },
                             elevation = FloatingActionButtonDefaults.elevation(0.dp,0.dp)
                         ) {

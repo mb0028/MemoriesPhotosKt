@@ -36,6 +36,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.MemoriesPhotos"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -56,6 +57,7 @@
             android:name=".Camera"
             android:exported="true"
             android:label="@string/title_activity_camera"
+            android:launchMode="singleTask"
             android:icon="@mipmap/camera_app_icon"
             android:logo="@mipmap/camera_app_icon"
             android:theme="@style/Theme.MemoriesPhotos"
