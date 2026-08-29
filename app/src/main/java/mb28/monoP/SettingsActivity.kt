@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -36,6 +37,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.stringResource
@@ -209,6 +211,7 @@ fun MainSettings(paddingValues: PaddingValues) {
             var sorting by remember { mutableStateOf(Settings.mediaStore_sql_sorting) }
             SegmentedListItem(
                 shapes = ListItemDefaults.segmentedShapes(0, 1),
+                modifier = Modifier.clip(RoundedCornerShape(15.dp))
             ) {
                 OutlinedTextField(
                     sorting,
