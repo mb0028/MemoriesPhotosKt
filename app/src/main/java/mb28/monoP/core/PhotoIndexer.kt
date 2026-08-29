@@ -73,6 +73,7 @@ object PhotoIndexer {
     val photosList = mutableListOf<Photo>()
 
     fun getPhotos(context: Context) {
+        photosList.clear()
         val projection = arrayOf(MediaStore.MediaColumns.DATA, MediaStore.MediaColumns.DATE_MODIFIED,
             MediaStore.Video.Media._ID)
 
