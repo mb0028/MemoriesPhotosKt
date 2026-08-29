@@ -4,17 +4,24 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
+import androidx.camera.camera2.compat.workaround.TargetAspectRatio
+import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.CameraX
 import androidx.camera.core.ExperimentalZeroShutterLag
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.impl.ImageCaptureConfig
 import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.core.animateFloatAsState
@@ -25,7 +32,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,18 +40,15 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,9 +61,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.min
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
@@ -81,10 +82,13 @@ import mb28.monoP.ui.camera.CameraPermissionPage
 import mb28.monoP.ui.components.ShutterButton
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
 import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import kotlin.time.Duration.Companion.seconds
 
 private const val MAKER_NOTE_P = "Captured with Memories Photos"
 private lateinit var cameraController: LifecycleCameraController
-
 class Camera : ComponentActivity() {
     @androidx.annotation.OptIn(ExperimentalZeroShutterLag::class)
     @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -99,45 +103,29 @@ class Camera : ComponentActivity() {
             requestPermissions(arrayOf(Manifest.permission.CAMERA), 0)
         }
 
-        // Cam ctrl
+        // Cam
         val previewView = PreviewView(this)
+        previewView.scaleType = PreviewView.ScaleType.FIT_CENTER
+        previewView.setBackgroundColor(0x00ffffff)
         cameraController = LifecycleCameraController(baseContext)
+        changeAspect(Settings.cameraAspect)
         cameraController.bindToLifecycle(this)
         previewView.controller = cameraController
+
 
         setContent {
             MemoriesPhotosTheme {
                 val interactionSource = remember { MutableInteractionSource() }
                 val isShutterPressed by interactionSource.collectIsPressedAsState()
-                var aspectX by remember { mutableStateOf(1.dp) }
-                var aspectY by remember { mutableStateOf(1.dp) }
                 val uiAlpha: Float by animateFloatAsState(
                     if (isShutterPressed) 0f else 0.75f
                 )
-
-                fun updateAspect(asp: Int) {
-//                    aspectX = when(asp) {
-//                        0 -> 300.dp
-//                        1 -> (900 / 4).dp
-//                        2 -> Dp.Infinity
-//                        3 -> 200.dp
-//                        else -> throw Exception()
-//                    }
-//                    aspectY = when(asp) {
-//                        0 -> 400.dp
-//                        1 -> (1600 / 4).dp
-//                        2 -> Dp.Infinity
-//                        3 -> 200.dp
-//                        else -> throw Exception()
-//                    }
-                }
-//                updateAspect(Settings.cameraAspect)
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
                         CameraAppBar(this, cameraController, Modifier.alpha(uiAlpha)) {
-                            updateAspect(it)
+                            changeAspect(it)
                         }
                     },
                     bottomBar = {
@@ -239,9 +227,14 @@ fun ShutterRow(interactionSource:  MutableInteractionSource, uiAlpha: Float) {
             }
             ShutterButton(interactionSource) {
                 scope.launch {
+                    val t = LocalDateTime.now()
                     val outputOptions = ImageCapture.OutputFileOptions.Builder(
-                        File(Settings.appFolder, "Photo ${System.currentTimeMillis()}.jpg")
-                    ).build()
+                        File(Settings.appFolder, "Photo ${t.year}-${t.monthValue.toString().padStart(2, '0')}" +
+                            "-${t.dayOfMonth.toString().padStart(2, '0')} " +
+                            "${t.hour.toString().padStart(2, '0')}-${t.minute.toString().padStart(2, '0')}" +
+                            "-${t.second.toString().padStart(2, '0')}.jpg")
+                    ).setMetadata(ImageCapture.Metadata())
+                        .build()
 
                     cameraController.takePicture(
                         outputOptions,
@@ -263,6 +256,11 @@ fun ShutterRow(interactionSource:  MutableInteractionSource, uiAlpha: Float) {
                                 Toast.makeText(context, "Failed: $e", Toast.LENGTH_LONG).show()
                             }
                         }
+                    )
+                    context.sendBroadcast(
+                        Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(
+                            File(capturedPath)
+                        ))
                     )
                 }
             }
@@ -301,4 +299,20 @@ private fun Activity.setupWindowAndShortcuts() {
         .setActivity(componentName)
         .build()
     ShortcutManagerCompat.pushDynamicShortcut(this, shortcut)
+}
+
+fun changeAspect(asp: Int) {
+    val resolutionSelector = ResolutionSelector.Builder()
+        .setAspectRatioStrategy(
+            AspectRatioStrategy(
+                when(asp) {
+                    0 -> AspectRatio.RATIO_4_3
+                    1 -> AspectRatio.RATIO_16_9
+                    else -> AspectRatio.RATIO_16_9
+                },
+                AspectRatioStrategy.FALLBACK_RULE_AUTO
+            )
+        )
+        .build()
+    cameraController.previewResolutionSelector = resolutionSelector
 }

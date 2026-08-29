@@ -66,9 +66,9 @@ fun CameraAppBar(
                 {
                     when(aspect) {
                         0 -> aspect = 1
-                        1 -> aspect = 2
-                        2 -> aspect = 3
-                        3 -> aspect = 0
+                        1 -> aspect = 0
+//                        2 -> aspect = 3
+//                        3 -> aspect = 0
                     }
                     Settings.cameraAspect = aspect
                     onAspectChanged(aspect)
