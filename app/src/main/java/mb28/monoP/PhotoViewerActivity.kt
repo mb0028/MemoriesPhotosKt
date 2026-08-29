@@ -99,15 +99,9 @@ fun PinchToZoomView(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onDoubleTap = {
-                        if (scale != 1f) {
-                            scale = 1f
-                            offset = Offset.Zero
-                            if (allowRotationGesture) {
-                                rotation = 0f
-                            }
-                        } else {
-                            scale = 2f
-                        }
+                        scale = if (scale == 1f) 2f else 1f
+                        if (allowRotationGesture) { rotation = 0f }
+                        offset = Offset.Zero
                     }
                 )
             }
