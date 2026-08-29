@@ -16,4 +16,6 @@
     <string name="cancel">Cancel</string>
     <string name="save">Save</string>
     <string name="move_to_trash">Move to trash</string>
+    <string name="image_sorting_sql">Image Sorting (SQL):</string>
+    <string name="warning_invalid_sorting">WARNING: Invalid sorting = app crash</string>
 </resources>

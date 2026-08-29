@@ -7,7 +7,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.media.ThumbnailUtils
 import android.net.Uri
-import android.os.Environment
 import android.provider.MediaStore
 import android.util.Size
 import androidx.core.content.FileProvider
@@ -82,7 +81,8 @@ object PhotoIndexer {
             projection,
             null,
             null,
-            "${MediaStore.Images.Media.DATE_TAKEN} DESC"
+            Settings.mediaStore_sql_sorting,
+
         )?.use { cursor ->
             val idc = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
             val pc = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)

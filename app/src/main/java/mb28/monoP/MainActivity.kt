@@ -38,6 +38,7 @@ import androidx.core.graphics.drawable.IconCompat
 import androidx.core.view.WindowCompat
 import mb28.crystalHomeKt.ui.icons.settings
 import mb28.monoP.core.PhotoIndexer.getPhotos
+import mb28.monoP.core.Settings
 import mb28.monoP.core.Settings.load
 import mb28.monoP.core.Settings.requestAllFilesAccessOrFinish
 import mb28.monoP.icons.add_a_photo

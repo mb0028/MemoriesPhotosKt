@@ -3,6 +3,7 @@ package mb28.monoP.core
 import android.app.Activity
 import android.content.Intent
 import android.os.Environment
+import android.provider.MediaStore
 import android.provider.Settings
 import android.widget.Toast
 import androidx.core.net.toUri
@@ -31,6 +32,7 @@ object Settings {
     var imageCaptureFlashMode = 2
     var startCameraMode = 0
     var cameraAspect = 0
+    var mediaStore_sql_sorting = "${MediaStore.Images.Media.DATE_ADDED} DESC, ${MediaStore.Images.Media.DATE_MODIFIED} DESC, ${MediaStore.Images.Media.DATE_TAKEN} DESC"
 
     fun load() {
         favorites.clear()
@@ -66,6 +68,7 @@ object Settings {
                     s.startsWith("[Cam Flash Mode]") -> imageCaptureFlashMode = s.removePrefix("[Cam Flash Mode]").toInt().coerceIn(0, 4)
                     s.startsWith("[Cam Start Mode]") -> startCameraMode = s.removePrefix("[Cam Start Mode]").toInt().coerceIn(0, 2)
                     s.startsWith("[Cam Aspect]") -> cameraAspect = s.removePrefix("[Cam Aspect]").toInt().coerceIn(0, 4)
+                    s.startsWith("[Sorting]") -> mediaStore_sql_sorting = s.removePrefix("[Sorting]")
                 }
             }
         } else {
@@ -84,6 +87,7 @@ object Settings {
         data += "[IT]$trashInstead\n"
         data += "[MSD]$useMediaStoreDelete\n"
         data += "[SSC]$specialSectionsCount\n"
+        data += "[Sorting]$mediaStore_sql_sorting\n"
 
         data += "\n[Camera Settings]\n"
         data += "[Cam Lock Focus]$lockFocusWithShutter\n"

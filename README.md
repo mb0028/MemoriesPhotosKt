@@ -26,4 +26,4 @@ If you want to add new language to app make sure using Android studio's "Transla
 
 Currently supported languages:
 - EN: 100%
-- JP: 8%
+- JP: 3%

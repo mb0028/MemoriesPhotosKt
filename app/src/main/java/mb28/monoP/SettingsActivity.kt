@@ -18,6 +18,8 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -36,6 +38,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -199,6 +203,35 @@ fun MainSettings(paddingValues: PaddingValues) {
                 )
             }
         }
+
+        item { Spacer(Modifier.height(15.dp)) }
+        item {
+            var sorting by remember { mutableStateOf(Settings.mediaStore_sql_sorting) }
+            SegmentedListItem(
+                shapes = ListItemDefaults.segmentedShapes(0, 1),
+            ) {
+                OutlinedTextField(
+                    sorting,
+                    {
+                        sorting = it
+                        Settings.mediaStore_sql_sorting = it
+                        Settings.save()
+                    },
+                    minLines = 3,
+                    maxLines = 10,
+                    shape = OutlinedTextFieldDefaults.roundedShape,
+                    textStyle = TextStyle(
+                        fontSize = 18.sp
+                    ),
+                    label = {
+                        Text(stringResource(R.string.image_sorting_sql))
+                    },
+                    supportingText = {
+                        Text(stringResource(R.string.warning_invalid_sorting))
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -337,7 +370,9 @@ fun CameraSettings(paddingValues: PaddingValues) {
                         "- Maximize Quality: Better quality but images may take longer to capture. larger file size\n" +
                             "- Minimize Latency: Balance\n" +
                                 "- 0 Shutter Lag: Better latency while keeping good image quality (Experimental in CameraX)",
-                        modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 10.dp),
                         fontSize = 14.sp
                     )
                 }
