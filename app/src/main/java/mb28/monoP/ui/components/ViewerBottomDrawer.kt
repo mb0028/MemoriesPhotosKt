@@ -2,6 +2,8 @@ package mb28.monoP.ui.components
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.widget.Toast
+import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,7 +15,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,9 +29,11 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,12 +44,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.exifinterface.media.ExifInterface
-import mb28.crystalHomeKt.ui.icons.coffee
 import mb28.crystalHomeKt.ui.icons.delete_forever
 import mb28.crystalHomeKt.ui.icons.favorite
 import mb28.crystalHomeKt.ui.icons.heart_plus
 import mb28.monoP.R
 import mb28.monoP.core.Settings
+import mb28.monoP.core.deleteOrTrash
 import mb28.monoP.icons.add_2
 import mb28.monoP.icons.camera
 import mb28.monoP.icons.comic_bubble
@@ -53,7 +59,6 @@ import mb28.monoP.icons.lens_blur
 import mb28.monoP.icons.my_location
 import mb28.monoP.icons.pageless
 import mb28.monoP.icons.photo_camera
-import mb28.monoP.icons.photo_prints
 import java.io.File
 import java.util.Date
 import kotlin.math.roundToInt
@@ -62,6 +67,7 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ViewerBottomDrawer(path: String) {
+    val context = LocalActivity.current!!
     val exif = ExifInterface(path)
     val padding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val st = rememberBottomSheetScaffoldState()
@@ -71,6 +77,9 @@ fun ViewerBottomDrawer(path: String) {
         != SheetValue.Expanded) (padding + 20.dp) else 10.dp)
     val tabs = listOf("Location", "Main Tags", "Advance")
     val selectedI = remember { mutableIntStateOf(1) }
+
+    var deleteDia by remember { mutableStateOf(false) }
+    var editCommentDia by remember { mutableStateOf(false) }
 
     BottomSheetScaffold(
         scaffoldState = st,
@@ -87,9 +96,7 @@ fun ViewerBottomDrawer(path: String) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                IconButton({
-
-                }) {
+                IconButton({ deleteDia = true }) {
                     Icon(delete_forever, stringResource(R.string.delete))
                 }
                 IconButton({
@@ -298,4 +305,29 @@ fun ViewerBottomDrawer(path: String) {
             Spacer(Modifier.height(padding + 5.dp))
         },
     ) { }
+
+    if (deleteDia) {
+        val todText = if (Settings.trashInstead) "Move to trash" else "Delete"
+        AlertDialog(
+            { deleteDia = false },
+            {
+                Button({
+                    deleteOrTrash(path)
+                    Toast.makeText(context, "${if (Settings.trashInstead) "Trashed" else "Deleted"} $path",
+                        Toast.LENGTH_SHORT).show()
+                    deleteDia = false
+                    context.finish()
+                }) {
+                    Text(todText)
+                }
+            },
+            title = {
+                Text("$todText?")
+            },
+            text = {
+                Text(path)
+            }
+        )
+    }
+
 }

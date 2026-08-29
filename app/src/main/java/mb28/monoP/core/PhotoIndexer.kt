@@ -46,6 +46,22 @@ fun getComment(path: String, getNameIfNull: Boolean = true) : String =
     ExifInterface(path).getAttribute(ExifInterface.TAG_USER_COMMENT)
         ?: if (getNameIfNull) path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('.')) else ""
 
+private const val TRASH_NAME = ".monop-trashed-"
+
+fun deleteOrTrash(path: String) {
+    if (Settings.trashInstead) {
+        val p = path.substring(0, path.lastIndexOf('/') + 1)
+        val n = path.substring(path.lastIndexOf('/') + 1)
+        File(path).renameTo(File(p + TRASH_NAME + n))
+    } else {
+        File(path).delete()
+    }
+}
+
+fun restore(path: String) {
+    File(path).renameTo(File(path.removePrefix(TRASH_NAME)))
+}
+
 data class Photo(
     val uri: Uri,
     val path : String,
