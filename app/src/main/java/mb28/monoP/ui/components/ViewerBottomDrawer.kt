@@ -22,11 +22,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,6 +56,8 @@ import mb28.crystalHomeKt.ui.icons.heart_plus
 import mb28.monoP.R
 import mb28.monoP.core.Settings
 import mb28.monoP.core.deleteOrTrash
+import mb28.monoP.core.editComment
+import mb28.monoP.core.getComment
 import mb28.monoP.icons.add_2
 import mb28.monoP.icons.camera
 import mb28.monoP.icons.comic_bubble
@@ -109,9 +117,7 @@ fun ViewerBottomDrawer(path: String) {
                 }) {
                     Icon(add_2, null)
                 }
-                IconButton({
-
-                }) {
+                IconButton({ editCommentDia = true }) {
                     Icon(comment, null)
                 }
                 IconButton({
@@ -307,7 +313,7 @@ fun ViewerBottomDrawer(path: String) {
     ) { }
 
     if (deleteDia) {
-        val todText = if (Settings.trashInstead) "Move to trash" else "Delete"
+        val todText = if (Settings.trashInstead) stringResource(R.string.move_to_trash) else stringResource(R.string.delete)
         AlertDialog(
             { deleteDia = false },
             {
@@ -321,11 +327,59 @@ fun ViewerBottomDrawer(path: String) {
                     Text(todText)
                 }
             },
+            dismissButton = {
+                OutlinedButton({ editCommentDia = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
             title = {
                 Text("$todText?")
             },
             text = {
                 Text(path)
+            }
+        )
+    }
+
+    if (editCommentDia) {
+        val c = getComment(path, false)
+        var newComment by remember { mutableStateOf(c) }
+        AlertDialog(
+            { editCommentDia = false },
+            {
+                Button({
+                    if (newComment.isNotBlank()) {
+                        editComment(path, newComment)
+                    } else {
+                        editComment(path, null)
+                    }
+                    editCommentDia = false
+                }) {
+                    Text(stringResource(R.string.save))
+                }
+            },
+            dismissButton = {
+                OutlinedButton({ editCommentDia = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+            title = {
+                Text(stringResource(R.string.change_comment))
+            },
+            text = {
+                OutlinedTextField(
+                    newComment,
+                    {newComment = it},
+                    minLines = 3,
+                    maxLines = 3,
+                    shape = OutlinedTextFieldDefaults.roundedShape,
+                    textStyle = TextStyle(
+                        fontSize = 18.sp
+                    ),
+                    label = {
+                        Text(stringResource(R.string.comment))
+                    }
+                )
             }
         )
     }

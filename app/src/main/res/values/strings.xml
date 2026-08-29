@@ -12,4 +12,8 @@
     <string name="needs_all_files_access">App can\'t run without all files access.</string>
     <string name="delete">Delete</string>
     <string name="comment">Comment</string>
+    <string name="change_comment">Change Comment</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="move_to_trash">Move to trash</string>
 </resources>
