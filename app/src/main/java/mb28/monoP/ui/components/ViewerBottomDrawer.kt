@@ -108,7 +108,14 @@ fun ViewerBottomDrawer(path: String) {
                     Icon(comment, null)
                 }
                 IconButton({
-
+                    if (Settings.favorites.contains(path)) {
+                        Settings.favorites.remove(path)
+                        isInFavorites.value = false
+                    } else {
+                        Settings.favorites.add(0, path)
+                        isInFavorites.value = true
+                    }
+                    Settings.save()
                 }) {
                     Icon(if (isInFavorites.value) favorite else heart_plus, null)
                 }
