@@ -46,6 +46,7 @@ android {
 dependencies {
     implementation(libs.androidx.exifinterface)
     implementation(libs.androidx.graphics.shapes)
+    implementation(libs.cloudy)
 
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
