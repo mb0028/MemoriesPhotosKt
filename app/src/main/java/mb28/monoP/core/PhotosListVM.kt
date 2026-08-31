@@ -28,7 +28,6 @@ class PhotosListVM : ViewModel() {
             )?.use { cursor ->
             val idc = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
             val pc = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
-//            val dmc = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_MODIFIED)
 
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idc)
@@ -39,17 +38,13 @@ class PhotosListVM : ViewModel() {
                 )
 
                 val p = Photo(contentUri, path)
-//                if (!path.contains(TRASH_NAME)) {
-                    if(Settings.onlyShowDCIM) {
-                        if (path.contains("DCIM/")) {
-                            _photosList += p
-                        }
-                    } else {
-                        photosList += p
+                if(Settings.onlyShowDCIM) {
+                    if (path.contains("DCIM/")) {
+                        _photosList += p
                     }
-//                } else {
-//                    _photosInTrash += p
-//                }
+                } else {
+                    photosList += p
+                }
             }
         }
         onRefresh()
