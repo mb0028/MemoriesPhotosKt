@@ -1,4 +1,4 @@
-package mb28.crystalHomeKt.ui.icons
+package mb28.monoP.icons
 
 
 import androidx.compose.ui.graphics.Color
@@ -34,7 +34,7 @@ public val delete_forever: ImageVector
                         strokeLineCap = StrokeCap.Butt,
                         strokeLineJoin = StrokeJoin.Bevel,
                         strokeLineMiter = 1f,
-                        pathFillType = PathFillType.Companion.NonZero,
+                        pathFillType = PathFillType.NonZero,
                     ) {
                         moveTo(9.4f, 16.5f)
                         lineTo(12f, 13.9f)

@@ -1,7 +1,6 @@
 package mb28.monoP.core
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.media.ThumbnailUtils
@@ -9,7 +8,6 @@ import android.net.Uri
 import android.util.Size
 import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
-import androidx.lifecycle.ViewModelProvider
 import mb28.monoP.EXTRA_PATH
 import mb28.monoP.PhotoViewerActivity
 import mb28.monoP.core.Settings.inAppPhotoViewer
@@ -80,11 +78,3 @@ fun createOrGetThumbnail(path: String): String {
     return thumbnailFile.path
 }
 
-@Deprecated("Use PhotosListVm instead", level = DeprecationLevel.ERROR)
-object PhotoIndexer {
-    @Deprecated("Use PhotosListVm instead", level = DeprecationLevel.ERROR)
-    val photosList = mutableListOf<Photo>()
-
-    @Deprecated("Use PhotosListVm instead", level = DeprecationLevel.ERROR)
-    fun getPhotos(context: Context) {}
-}

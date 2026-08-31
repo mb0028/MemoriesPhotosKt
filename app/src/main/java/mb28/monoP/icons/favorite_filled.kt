@@ -1,4 +1,4 @@
-package mb28.crystalHomeKt.ui.icons
+package mb28.monoP.icons
 
 
 import androidx.compose.ui.graphics.Color
@@ -34,7 +34,7 @@ public val favorite: ImageVector
                         strokeLineCap = StrokeCap.Butt,
                         strokeLineJoin = StrokeJoin.Bevel,
                         strokeLineMiter = 1f,
-                        pathFillType = PathFillType.Companion.NonZero,
+                        pathFillType = PathFillType.NonZero,
                     ) {
                         moveTo(12f, 21f)
                         lineTo(10.55f, 19.7f)

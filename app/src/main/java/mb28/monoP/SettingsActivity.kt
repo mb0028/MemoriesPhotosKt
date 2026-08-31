@@ -3,7 +3,6 @@ package mb28.monoP
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -28,7 +27,6 @@ import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,25 +37,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
-import mb28.crystalHomeKt.ui.icons.arrow_back
+import mb28.monoP.icons.arrow_back
 import mb28.monoP.core.Settings
 import mb28.monoP.core.Settings.requestAllFilesAccessOrFinish
-import mb28.monoP.core.getComment
-import mb28.monoP.icons.add_2
-import mb28.monoP.icons.camera
 import mb28.monoP.icons.info
-import mb28.monoP.icons.photo_camera
 import mb28.monoP.icons.photo_camera_back
 import mb28.monoP.icons.photo_camera_front
-import mb28.monoP.ui.components.EasySegmentedListItem
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
 
 const val EXTRA_SHOW_CAMERA_SETTINGS = "EXTRA_SHOW_CAMERA_SETTINGS"

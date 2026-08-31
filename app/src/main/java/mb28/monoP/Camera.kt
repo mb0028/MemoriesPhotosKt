@@ -6,22 +6,17 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
-import androidx.camera.camera2.compat.workaround.TargetAspectRatio
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.CameraX
 import androidx.camera.core.ExperimentalZeroShutterLag
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.impl.ImageCaptureConfig
 import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
-import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.core.animateFloatAsState
@@ -79,13 +74,10 @@ import mb28.monoP.icons.photo_prints
 import mb28.monoP.ui.camera.CameraAppBar
 import mb28.monoP.ui.camera.CameraBgShape
 import mb28.monoP.ui.camera.CameraPermissionPage
-import mb28.monoP.ui.components.ShutterButton
+import mb28.monoP.ui.camera.ShutterButton
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
 import java.io.File
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Date
-import kotlin.time.Duration.Companion.seconds
 
 private const val MAKER_NOTE_P = "Captured with Memories Photos"
 private lateinit var cameraController: LifecycleCameraController

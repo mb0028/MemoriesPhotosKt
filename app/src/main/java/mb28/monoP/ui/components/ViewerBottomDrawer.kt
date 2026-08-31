@@ -50,9 +50,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.exifinterface.media.ExifInterface
-import mb28.crystalHomeKt.ui.icons.delete_forever
-import mb28.crystalHomeKt.ui.icons.favorite
-import mb28.crystalHomeKt.ui.icons.heart_plus
+import mb28.monoP.icons.delete_forever
+import mb28.monoP.icons.favorite
+import mb28.monoP.icons.heart_plus
 import mb28.monoP.R
 import mb28.monoP.core.Settings
 import mb28.monoP.core.deleteOrTrash

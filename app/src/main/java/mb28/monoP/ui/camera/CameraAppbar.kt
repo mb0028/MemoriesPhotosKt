@@ -17,9 +17,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import mb28.crystalHomeKt.ui.icons.arrow_back
+import mb28.monoP.icons.arrow_back
 import mb28.monoP.EXTRA_SHOW_CAMERA_SETTINGS
 import mb28.monoP.SettingsActivity
 import mb28.monoP.core.Settings
