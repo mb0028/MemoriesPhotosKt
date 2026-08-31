@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleCoroutineScope
@@ -42,7 +43,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun PhotosGrid(photosVM: PhotosListVM) {
+fun PhotosGrid(topPadding: Dp, photosVM: PhotosListVM) {
     val context = LocalActivity.current!!
     var isRefreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -68,7 +69,7 @@ fun PhotosGrid(photosVM: PhotosListVM) {
         } else {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(100.dp),
-                contentPadding = PaddingValues(vertical = 100.dp),
+                contentPadding = PaddingValues(vertical = topPadding),
             ) {
                 items(photosVM.photosList.count()) { i ->
                     Image(

@@ -134,11 +134,12 @@ class MainActivity : ComponentActivity() {
                             Icon(add_a_photo, null)
                         }
                     }
-                ) { padding -> padding
+                ) { padding ->
+                    val tp = padding.calculateTopPadding()
                     when(selectedIndex.intValue) {
-                        0 -> PhotosGrid(photosVM)
+                        0 -> PhotosGrid(tp, photosVM)
                         1 -> MoreTab(
-                            Modifier.padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 60.dp),
+                            Modifier.padding(top = tp),
                             photosVM
                         )
                         else -> {}
