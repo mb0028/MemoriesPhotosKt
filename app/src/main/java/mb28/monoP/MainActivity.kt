@@ -21,6 +21,7 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationItemIconPosition
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShortNavigationBar
@@ -94,6 +95,7 @@ class MainActivity : ComponentActivity() {
                 val selectedIndex = rememberSaveable { mutableIntStateOf(0) }
                 val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
                 Scaffold(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                     modifier = Modifier.fillMaxSize()
                         .nestedScroll(scrollBehavior.nestedScrollConnection),
                     bottomBar = {
@@ -105,7 +107,8 @@ class MainActivity : ComponentActivity() {
                             contentPadding = PaddingValues(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()),
                             scrollBehavior = scrollBehavior,
                             colors = TopAppBarDefaults.topAppBarColors(
-                                scrolledContainerColor = TopAppBarDefaults.topAppBarColors().containerColor
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                                scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                             ),
                             title = { Text(
                                 when(selectedIndex.intValue) {
