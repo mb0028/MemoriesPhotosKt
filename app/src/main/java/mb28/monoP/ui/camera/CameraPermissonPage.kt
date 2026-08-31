@@ -11,8 +11,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import mb28.monoP.R
 
 @Composable
 fun CameraPermissionPage() {
@@ -24,12 +26,12 @@ fun CameraPermissionPage() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "Camera permission is denied.",
+            stringResource(R.string.camera_permission_is_denied),
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(16.dp))
         Button(onClick = {}) {
-            Text("Open Settings")
+            Text(stringResource(R.string.open_settings))
         }
     }
 }

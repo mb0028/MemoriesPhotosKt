@@ -74,7 +74,7 @@ class SettingsActivity : ComponentActivity() {
                     topBar = {
                         LargeTopAppBar(
                             {
-                                Text("Settings")
+                                Text(stringResource(R.string.settings))
                             },
                             colors = TopAppBarDefaults.topAppBarColors(
                                 containerColor = Color.Transparent
@@ -177,6 +177,8 @@ fun MainSettings(paddingValues: PaddingValues) {
                         enabled = when(i) {
                             0 -> iapp
                             5 -> ti
+                            1 -> false
+                            2 -> false
                             else -> true
                         },
                     )
@@ -185,12 +187,12 @@ fun MainSettings(paddingValues: PaddingValues) {
             ) {
                 Text(
                     when(i) {
-                        0 -> "Allow rotation in image viewer"
-                        1 -> "In-app camera"
-                        2 -> "In-app image viewer"
-                        3 -> "Only show DCIM folder"
-                        4 -> "Trash instead of delete"
-                        5 -> "Use MediaStore for deleting"
+                        0 -> stringResource(R.string.s_rotatable_images)
+                        1 -> stringResource(R.string.s_in_app_camera)
+                        2 -> stringResource(R.string.s_in_app_image_viewer)
+                        3 -> stringResource(R.string.s_only_show_dcim)
+                        4 -> stringResource(R.string.s_trash_instead)
+                        5 -> stringResource(R.string.s_mediastore_deleting)
                         else -> throw Exception()
                     }
                 )
@@ -272,13 +274,18 @@ fun CameraSettings(paddingValues: PaddingValues) {
                         modifier = Modifier.padding(vertical = 10.dp),
                     )
                 },
+                enabled = when(i) {
+                    0 -> false
+                    1 -> false
+                    else -> true
+                },
                 onClick = {}
             ) {
                 Text(
                     when(i) {
-                        0 -> "Lock focus when holding shutter"
-                        1 -> "Lock exposure when holding shutter"
-                        2 -> "Show write comment input field and save comment to image Exif"
+                        0 -> stringResource(R.string.s_lock_focus)
+                        1 -> stringResource(R.string.s_lock_exposure)
+                        2 -> stringResource(R.string.s_write_comment_input)
                         else -> throw Exception()
                     }
                 )
@@ -288,7 +295,10 @@ fun CameraSettings(paddingValues: PaddingValues) {
         val segmentedSectionCount = 2
         item { Spacer(Modifier.height(15.dp)) }
         item {
-            val cameraDirections = listOf("Back", "Front")
+            val cameraDirections = listOf(
+                stringResource(R.string.camera_back),
+                stringResource(R.string.camera_front)
+            )
             var cameraDirectionsI by remember { mutableIntStateOf(Settings.startCameraMode) }
             SegmentedListItem(
                 shapes = ListItemDefaults.segmentedShapes(0, segmentedSectionCount),
@@ -339,7 +349,7 @@ fun CameraSettings(paddingValues: PaddingValues) {
             ) {
                 Column {
                     Text(
-                        "Image Capture mode",
+                        stringResource(R.string.s_image_capture_mode),
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
                     )
@@ -361,9 +371,7 @@ fun CameraSettings(paddingValues: PaddingValues) {
                         }
                     }
                     Text(
-                        "- Maximize Quality: Better quality but images may take longer to capture. larger file size\n" +
-                            "- Minimize Latency: Balance\n" +
-                                "- 0 Shutter Lag: Better latency while keeping good image quality (Experimental in CameraX)",
+                        stringResource(R.string.s_image_capture_mode_helper),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 10.dp),

@@ -53,6 +53,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -181,7 +182,7 @@ fun ShutterRow(interactionSource:  MutableInteractionSource, uiAlpha: Float) {
                 singleLine = true,
                 placeholder = {
                     Text(
-                        "write comment...",
+                        stringResource(R.string.camera_write_comment),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth(),
                     )
