@@ -38,7 +38,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun PhotosGrid(topPadding: Dp, photosVM: PhotosListVM) {
+fun PhotosGrid(padding: PaddingValues, photosVM: PhotosListVM) {
     val context = LocalActivity.current!!
     var isRefreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -64,7 +64,7 @@ fun PhotosGrid(topPadding: Dp, photosVM: PhotosListVM) {
         } else {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(100.dp),
-                contentPadding = PaddingValues(vertical = topPadding),
+                contentPadding = padding
             ) {
                 items(photosVM.photosList.count()) { i ->
                     Image(

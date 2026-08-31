@@ -131,7 +131,7 @@ class MainActivity : ComponentActivity() {
                 ) { padding ->
                     val tp = padding.calculateTopPadding()
                     when(selectedIndex.intValue) {
-                        0 -> PhotosGrid(tp, photosVM)
+                        0 -> PhotosGrid(padding, photosVM)
                         1 -> MoreTab(
                             Modifier.padding(top = tp),
                             photosVM
