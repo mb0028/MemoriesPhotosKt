@@ -53,7 +53,7 @@ class PhotoViewerActivity : ComponentActivity() {
         if (p == null) {
             finish()
         }
-        val photo = BitmapFactory.decodeFile(p!!)
+        val photo = BitmapFactory.decodeFile(p!!).asImageBitmap()
 
         super.onCreate(savedInstanceState)
         setContent {
@@ -66,8 +66,8 @@ class PhotoViewerActivity : ComponentActivity() {
                     bottomBar = {
                         ViewerBottomDrawer(p)
                     }
-                ) { i ->
-                    PinchToZoomView(path = photo.asImageBitmap(), Modifier.padding(top = i.calculateTopPadding()))
+                ) { i -> i
+                    PinchToZoomView(path = photo)
                 }
             }
         }
@@ -76,16 +76,13 @@ class PhotoViewerActivity : ComponentActivity() {
 
 
 @Composable
-fun PinchToZoomView(
-    path: ImageBitmap,
-    modifier: Modifier
-) {
+fun PinchToZoomView(path: ImageBitmap, ) {
     var scale by remember { mutableFloatStateOf(1f) }
     var rotation by remember { mutableFloatStateOf(0f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
 
     Box(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectTransformGestures { centerPoint, offsetChange, zoomChange, rotationChange ->
