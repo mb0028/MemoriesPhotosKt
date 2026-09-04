@@ -30,7 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,9 +42,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
-import mb28.monoP.icons.arrow_back
 import mb28.monoP.core.Settings
+import mb28.monoP.core.Settings.mediaStore_sql_sorting
 import mb28.monoP.core.Settings.requestAllFilesAccessOrFinish
+import mb28.monoP.icons.arrow_back
 import mb28.monoP.icons.info
 import mb28.monoP.icons.photo_camera_back
 import mb28.monoP.icons.photo_camera_front
@@ -116,14 +116,8 @@ class SettingsActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainSettings(paddingValues: PaddingValues) {
-    val count = 5 // TODO: include msd in settings
-    var osdcim by remember { mutableStateOf(Settings.onlyShowDCIM) }
-    var rotate by remember { mutableStateOf(Settings.allowRotationGesture) }
-    var iapp by remember { mutableStateOf(Settings.inAppPhotoViewer) }
-    var iappcam by remember { mutableStateOf(Settings.inAppCamera) }
-    var ti by remember { mutableStateOf(Settings.trashInstead) }
-    var msd by remember { mutableStateOf(Settings.useMediaStoreDelete) }
+private fun MainSettings(paddingValues: PaddingValues) {
+    val count = 6
 
     LazyColumn(
         contentPadding = paddingValues,
@@ -136,47 +130,29 @@ fun MainSettings(paddingValues: PaddingValues) {
                 trailingContent = {
                     Switch(
                         when(i) {
-                            0 -> rotate
-                            1 -> iappcam
-                            2 -> iapp
-                            3 -> osdcim
-                            4 -> ti
-                            5 -> msd
+                            0 -> Settings.allowRotationGesture
+                            1 -> Settings.inAppCamera
+                            2 -> Settings.inAppPhotoViewer
+                            3 -> Settings.onlyShowDCIM
+                            4 -> Settings.trashInstead
+                            5 -> Settings.useMediaStoreDelete
                             else -> throw Exception()
                         },
                         { v ->
                             when(i) {
-                                0 -> {
-                                    rotate = v
-                                    Settings.allowRotationGesture = v
-                                }
-                                1 -> {
-                                    iappcam = v
-                                    Settings.inAppCamera = v
-                                }
-                                2 -> {
-                                    iapp = v
-                                    Settings.inAppPhotoViewer = v
-                                }
-                                3 -> {
-                                    osdcim = v
-                                    Settings.onlyShowDCIM = v
-                                }
-                                4 -> {
-                                    ti = v
-                                    Settings.trashInstead = v
-                                }
-                                5 -> {
-                                    msd = v
-                                    Settings.useMediaStoreDelete = v
-                                }
+                                0 -> Settings.allowRotationGesture = v
+                                1 -> Settings.inAppCamera = v
+                                2 -> Settings.inAppPhotoViewer = v
+                                3 -> Settings.onlyShowDCIM = v
+                                4 -> Settings.trashInstead = v
+                                5 -> Settings.useMediaStoreDelete = v
                             }
                             Settings.save()
                         },
                         modifier = Modifier.padding(vertical = 10.dp),
                         enabled = when(i) {
-                            0 -> iapp
-                            5 -> ti
+                            0 -> Settings.inAppPhotoViewer
+                            5 -> false
                             1 -> false
                             2 -> false
                             else -> true
@@ -201,16 +177,14 @@ fun MainSettings(paddingValues: PaddingValues) {
 
         item { Spacer(Modifier.height(15.dp)) }
         item {
-            var sorting by remember { mutableStateOf(Settings.mediaStore_sql_sorting) }
             SegmentedListItem(
                 shapes = ListItemDefaults.segmentedShapes(0, 1),
                 modifier = Modifier.clip(RoundedCornerShape(15.dp))
             ) {
                 OutlinedTextField(
-                    sorting,
+                    mediaStore_sql_sorting,
                     {
-                        sorting = it
-                        Settings.mediaStore_sql_sorting = it
+                        mediaStore_sql_sorting = it
                         Settings.save()
                     },
                     minLines = 3,
@@ -232,11 +206,8 @@ fun MainSettings(paddingValues: PaddingValues) {
 }
 
 @Composable
-fun CameraSettings(paddingValues: PaddingValues) {
+private fun CameraSettings(paddingValues: PaddingValues) {
     val count = 3
-    var lf by remember { mutableStateOf(Settings.lockFocusWithShutter) }
-    var le by remember { mutableStateOf(Settings.lockExposureWithShutter) }
-    var ac by remember { mutableStateOf(Settings.addCommentAfterCapture) }
 
     LazyColumn(
         contentPadding = paddingValues,
@@ -249,25 +220,16 @@ fun CameraSettings(paddingValues: PaddingValues) {
                 trailingContent = {
                     Switch(
                         when(i) {
-                            0 -> lf
-                            1 -> le
-                            2 -> ac
+                            0 -> Settings.lockFocusWithShutter
+                            1 -> Settings.lockExposureWithShutter
+                            2 -> Settings.addCommentAfterCapture
                             else -> throw Exception()
                         },
                         { v ->
                             when(i) {
-                                0 -> {
-                                    lf = v
-                                    Settings.lockFocusWithShutter = v
-                                }
-                                1 -> {
-                                    le = v
-                                    Settings.lockExposureWithShutter = v
-                                }
-                                2 -> {
-                                    ac = v
-                                    Settings.addCommentAfterCapture = v
-                                }
+                                0 -> Settings.lockFocusWithShutter = v
+                                1 -> Settings.lockExposureWithShutter = v
+                                2 -> Settings.addCommentAfterCapture = v
                             }
                             Settings.save()
                         },
@@ -299,7 +261,6 @@ fun CameraSettings(paddingValues: PaddingValues) {
                 stringResource(R.string.camera_back),
                 stringResource(R.string.camera_front)
             )
-            var cameraDirectionsI by remember { mutableIntStateOf(Settings.startCameraMode) }
             SegmentedListItem(
                 shapes = ListItemDefaults.segmentedShapes(0, segmentedSectionCount),
                 modifier = Modifier.padding(bottom = 2.dp),
@@ -315,7 +276,7 @@ fun CameraSettings(paddingValues: PaddingValues) {
                     ) {
                         cameraDirections.forEachIndexed { index, t ->
                             SegmentedButton(
-                                selected = cameraDirectionsI == index,
+                                selected = Settings.startCameraMode == index,
                                 shape = SegmentedButtonDefaults.itemShape(index, 2),
                                 icon = {
                                     Icon(
@@ -327,7 +288,6 @@ fun CameraSettings(paddingValues: PaddingValues) {
                                     )
                                 },
                                 onClick = {
-                                    cameraDirectionsI = index
                                     Settings.startCameraMode = index
                                     Settings.save()
                                 }
@@ -342,7 +302,6 @@ fun CameraSettings(paddingValues: PaddingValues) {
 
         item {
             val seg = listOf("Maximize\nQuality", "Minimize\nLatency", "0 Shutter\nLag")
-            var segI by remember { mutableIntStateOf(Settings.imageCaptureMode) }
             SegmentedListItem(
                 shapes = ListItemDefaults.segmentedShapes(1, segmentedSectionCount),
                 modifier = Modifier.padding(bottom = 2.dp),
@@ -358,10 +317,9 @@ fun CameraSettings(paddingValues: PaddingValues) {
                     ) {
                         seg.forEachIndexed { index, t ->
                             SegmentedButton(
-                                selected = segI == index,
+                                selected = Settings.imageCaptureMode == index,
                                 shape = SegmentedButtonDefaults.itemShape(index, 3),
                                 onClick = {
-                                    segI = index
                                     Settings.imageCaptureMode = index
                                     Settings.save()
                                 }
@@ -383,10 +341,3 @@ fun CameraSettings(paddingValues: PaddingValues) {
 
     }
 }
-
-
-
-
-
-
-

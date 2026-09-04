@@ -40,9 +40,9 @@ import androidx.core.graphics.drawable.IconCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelProvider
 import mb28.monoP.icons.settings
-import mb28.monoP.core.PhotosListVM
 import mb28.monoP.core.Settings.load
 import mb28.monoP.core.Settings.requestAllFilesAccessOrFinish
+import mb28.monoP.core.refreshPhotosLists
 import mb28.monoP.icons.add_a_photo
 import mb28.monoP.icons.gallery_thumbnail
 import mb28.monoP.icons.gallery_thumbnail_filled
@@ -78,8 +78,7 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
-        val photosVM = ViewModelProvider(this)[PhotosListVM::class.java]
-        photosVM.refreshList(this) {}
+        refreshPhotosLists(this)
 
         setContent {
             MemoriesPhotosTheme {
@@ -131,11 +130,8 @@ class MainActivity : ComponentActivity() {
                 ) { padding ->
                     val tp = padding.calculateTopPadding()
                     when(selectedIndex.intValue) {
-                        0 -> PhotosGrid(padding, photosVM)
-                        1 -> MoreTab(
-                            Modifier.padding(top = tp),
-                            photosVM
-                        )
+                        0 -> PhotosGrid(padding)
+                        1 -> MoreTab(Modifier.padding(top = tp))
                         else -> {}
                     }
                 }

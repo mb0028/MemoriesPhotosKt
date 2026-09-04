@@ -27,18 +27,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import mb28.monoP.core.PhotosListVM
 import mb28.monoP.core.createOrGetThumbnail
 import mb28.monoP.core.openPhoto
+import mb28.monoP.core.photosList
+import mb28.monoP.core.refreshPhotosLists
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun PhotosGrid(padding: PaddingValues, photosVM: PhotosListVM) {
+fun PhotosGrid(padding: PaddingValues) {
     val context = LocalActivity.current!!
     var isRefreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -47,10 +47,9 @@ fun PhotosGrid(padding: PaddingValues, photosVM: PhotosListVM) {
         {
             scope.launch {
                 isRefreshing = true
+                refreshPhotosLists(context)
                 delay(35.milliseconds)
-                photosVM.refreshList(context) {
-                    isRefreshing = false
-                }
+                isRefreshing = false
             }
         },
     ) {
@@ -66,9 +65,9 @@ fun PhotosGrid(padding: PaddingValues, photosVM: PhotosListVM) {
                 columns = GridCells.Adaptive(100.dp),
                 contentPadding = padding
             ) {
-                items(photosVM.photosList.count()) { i ->
+                items(photosList.count()) { i ->
                     Image(
-                        BitmapFactory.decodeFile(createOrGetThumbnail(photosVM.photosList[i].path))
+                        BitmapFactory.decodeFile(createOrGetThumbnail(photosList[i].path))
                             .asImageBitmap(),
                         null,
                         contentScale = ContentScale.Crop,
@@ -79,7 +78,7 @@ fun PhotosGrid(padding: PaddingValues, photosVM: PhotosListVM) {
                             .clip(RoundedCornerShape(25.dp))
                             .combinedClickable(
                                 onClick = {
-                                    openPhoto(photosVM.photosList[i].path, context)
+                                    openPhoto(photosList[i].path, context)
                                 }
                             )
                     )

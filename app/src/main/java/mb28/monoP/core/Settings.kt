@@ -1,38 +1,48 @@
+@file:Suppress("ConstPropertyName")
+
 package mb28.monoP.core
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.os.Environment
 import android.provider.MediaStore
 import android.provider.Settings
 import android.widget.Toast
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.net.toUri
 import mb28.monoP.R
 import java.io.File
 
+@SuppressLint("SdCardPath")
 object Settings {
+
     const val appFolder = "/sdcard/DCIM/Memories Photos"
     const val appCacheFolder = "/sdcard/DCIM/Memories Photos/.temp"
     const val appCacheThumbsFolder = "/sdcard/DCIM/Memories Photos/.temp/Thumbnails"
     const val settingsFile = "$appFolder/Settings/Settings.txt"
 
-    val favorites = mutableListOf<String>()
-    var specialSectionsCount = 10
-    var inAppPhotoViewer = true
-    var inAppCamera = true
-    var allowRotationGesture = true
-    var onlyShowDCIM = true
-    var trashInstead = true
-    var useMediaStoreDelete = false
+    val favorites = mutableStateListOf<String>()
+    var specialSectionsCount by mutableIntStateOf(10)
+    var inAppPhotoViewer by mutableStateOf(true)
+    var inAppCamera by mutableStateOf(true)
+    var allowRotationGesture by mutableStateOf(true)
+    var onlyShowDCIM by mutableStateOf(false)
+    var trashInstead by mutableStateOf(true)
+    var useMediaStoreDelete by mutableStateOf(false)
 
-    var lockFocusWithShutter = true
-    var lockExposureWithShutter = true
-    var addCommentAfterCapture = false
-    var imageCaptureMode = 1
-    var imageCaptureFlashMode = 2
-    var startCameraMode = 0
-    var cameraAspect = 0
-    var mediaStore_sql_sorting = "${MediaStore.Images.Media.DATE_ADDED} DESC, ${MediaStore.Images.Media.DATE_MODIFIED} DESC, ${MediaStore.Images.Media.DATE_TAKEN} DESC"
+    var lockFocusWithShutter by mutableStateOf(true)
+    var lockExposureWithShutter by mutableStateOf(true)
+    var addCommentAfterCapture by mutableStateOf(true)
+    var imageCaptureMode by mutableIntStateOf(1)
+    var imageCaptureFlashMode by mutableIntStateOf(2)
+    var startCameraMode by mutableIntStateOf(0)
+    var cameraAspect by mutableIntStateOf(0)
+    var mediaStore_sql_sorting by mutableStateOf("${MediaStore.Images.Media.DATE_ADDED} DESC, ${MediaStore.Images.Media.DATE_MODIFIED} DESC, ${MediaStore.Images.Media.DATE_TAKEN} DESC")
 
     fun load() {
         favorites.clear()

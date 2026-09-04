@@ -37,15 +37,15 @@ import com.skydoves.cloudy.cloudy
 import com.skydoves.cloudy.rememberSky
 import com.skydoves.cloudy.sky
 import mb28.monoP.R
-import mb28.monoP.core.PhotosListVM
 import mb28.monoP.core.Settings
 import mb28.monoP.core.createOrGetThumbnail
 import mb28.monoP.core.getComment
 import mb28.monoP.core.openPhoto
+import mb28.monoP.core.photosList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoreTab(modifier: Modifier = Modifier, photosVM: PhotosListVM) {
+fun MoreTab(modifier: Modifier = Modifier) {
     val context = LocalActivity.current!!
     LazyColumn(
         modifier,
@@ -53,7 +53,7 @@ fun MoreTab(modifier: Modifier = Modifier, photosVM: PhotosListVM) {
             WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 75.dp)
     ) {
         item {
-            val cst = rememberCarouselState(0) { photosVM.photosList.count()
+            val cst = rememberCarouselState(0) { photosList.count()
                 .coerceAtMost(Settings.specialSectionsCount) }
             HorizontalMultiBrowseCarousel(
                 state = cst,
@@ -62,7 +62,7 @@ fun MoreTab(modifier: Modifier = Modifier, photosVM: PhotosListVM) {
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
             ) { i ->
                 Image(
-                    BitmapFactory.decodeFile(createOrGetThumbnail(photosVM.photosList[i].path)).asImageBitmap(),
+                    BitmapFactory.decodeFile(createOrGetThumbnail(photosList[i].path)).asImageBitmap(),
                     null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -71,7 +71,7 @@ fun MoreTab(modifier: Modifier = Modifier, photosVM: PhotosListVM) {
                         .clip(RoundedCornerShape(25.dp))
                         .combinedClickable(
                             onClick = {
-                                openPhoto(photosVM.photosList[i].path, context)
+                                openPhoto(photosList[i].path, context)
                             }
                         )
                 )
