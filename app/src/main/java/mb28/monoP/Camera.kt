@@ -129,9 +129,10 @@ class Camera : ComponentActivity() {
                         AndroidView(
                             { previewView },
                             modifier = Modifier
-                                .fillMaxSize()
+                                .fillMaxWidth()
+                                .height(if (Settings.cameraAspect == 0) 670.dp else 860.dp)
+                                .padding(top = i.calculateTopPadding())
                         )
-
                     } else {
                         CameraPermissionPage()
                     }
