@@ -4,8 +4,10 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -57,10 +59,11 @@ import mb28.monoP.ui.theme.MemoriesPhotosTheme
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        val controller = WindowCompat.getInsetsController(window, window.decorView)
-        controller.isAppearanceLightStatusBars = true
-        controller.isAppearanceLightNavigationBars = true
-        window.isNavigationBarContrastEnforced = false
+        enableEdgeToEdge()
+        with(window) {
+            window.isNavigationBarContrastEnforced = false
+            requestFeature(Window.FEATURE_ACTIVITY_TRANSITIONS)
+        }
 
         val shortcut = ShortcutInfoCompat.Builder(this, "settings")
             .setShortLabel("Settings")
@@ -77,7 +80,6 @@ class MainActivity : ComponentActivity() {
         }
 
         super.onCreate(savedInstanceState)
-
         refreshPhotosLists(this)
 
         setContent {

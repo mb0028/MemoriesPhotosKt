@@ -46,10 +46,8 @@ fun PhotosGrid(padding: PaddingValues) {
         isRefreshing,
         {
             scope.launch {
-                isRefreshing = true
                 refreshPhotosLists(context)
                 delay(35.milliseconds)
-                isRefreshing = false
             }
         },
     ) {

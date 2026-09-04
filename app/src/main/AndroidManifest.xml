@@ -49,7 +49,7 @@
             android:name=".PhotoViewerActivity"
             android:exported="false"
             android:label="@string/title_activity_photo_viewer"
-            android:theme="@style/Theme.MemoriesPhotos"
+            android:theme="@style/Theme.Transparent"
             android:windowSoftInputMode="adjustResize">
         </activity>
 

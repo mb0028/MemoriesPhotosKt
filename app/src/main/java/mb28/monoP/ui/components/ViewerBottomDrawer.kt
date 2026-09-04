@@ -77,7 +77,7 @@ private const val QMARKS3 = "???"
 @SuppressLint("SdCardPath")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ViewerBottomDrawer(path: String) {
+fun ViewerBottomDrawer(path: String, modifier: Modifier) {
     val context = LocalActivity.current!!
     val exif = ExifInterface(path)
     val padding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -100,7 +100,7 @@ fun ViewerBottomDrawer(path: String) {
         sheetShadowElevation = 0.dp,
         sheetTonalElevation = 0.dp,
         sheetDragHandle = { },
-        modifier = Modifier.padding(horizontal = 10.dp),
+        modifier = modifier.padding(horizontal = 10.dp),
         sheetContent = {
             Row(
                 Modifier.fillMaxWidth(),

@@ -154,7 +154,6 @@ private fun MainSettings(paddingValues: PaddingValues) {
                             0 -> Settings.inAppPhotoViewer
                             5 -> false
                             1 -> false
-                            2 -> false
                             else -> true
                         },
                     )
