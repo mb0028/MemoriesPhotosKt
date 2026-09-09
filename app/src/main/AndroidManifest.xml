@@ -8,16 +8,6 @@
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
-    <uses-permission android:name="android.permission.MANAGE_MEDIA" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
-    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
-    <uses-permission
-        android:name="android.permission.READ_MEDIA_IMAGES"
-        tools:ignore="PhotoAndVideoPolicy" />
-    <uses-permission
-        android:name="android.permission.READ_MEDIA_VIDEO"
-        tools:ignore="PhotoAndVideoPolicy" />
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="AllFilesAccessPolicy,ScopedStorage" />
@@ -32,7 +22,6 @@
         android:roundIcon="@mipmap/app_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.MemoriesPhotos">
-
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -41,6 +30,7 @@
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -50,47 +40,42 @@
             android:exported="false"
             android:label="@string/title_activity_photo_viewer"
             android:theme="@style/Theme.Transparent"
-            android:windowSoftInputMode="adjustResize">
-        </activity>
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".Camera"
             android:exported="true"
+            android:icon="@mipmap/camera_app_icon"
             android:label="@string/title_activity_camera"
             android:launchMode="singleTask"
-            android:icon="@mipmap/camera_app_icon"
             android:logo="@mipmap/camera_app_icon"
             android:theme="@style/Theme.MemoriesPhotos"
-            android:windowSoftInputMode="adjustResize" >
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".SettingsActivity"
             android:exported="true"
             android:label="@string/title_activity_settings"
             android:theme="@style/Theme.MemoriesPhotos"
-            android:windowSoftInputMode="adjustResize" >
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.SHOW_APP_INFO" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
-
-        <provider
-            android:name=".core.MonoPFileProvider"
-            android:authorities="${applicationId}.monop"
-            android:enabled="true"
+        <activity
+            android:name=".AlbumsActivity"
             android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/filepaths" />
-        </provider>
+            android:label="@string/title_activity_albums"
+            android:theme="@style/Theme.MemoriesPhotos"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

@@ -1,5 +1,6 @@
 package mb28.monoP.ui
 
+import android.content.Intent
 import android.graphics.BitmapFactory
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
@@ -20,23 +21,21 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import mb28.monoP.core.Photo
-import mb28.monoP.core.createOrGetThumbnail
-import mb28.monoP.core.openPhoto
-import mb28.monoP.core.photosList
+import mb28.monoP.core.createOrGetVideoThumbnail
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun PhotosGrid(padding: PaddingValues, list: SnapshotStateList<Photo>) {
+fun VideosGrid(padding: PaddingValues, list: SnapshotStateList<Photo>) {
     val context = LocalActivity.current!!
 
     LazyVerticalGrid(
         columns = GridCells.FixedSize(120.dp),
         contentPadding = padding,
-    horizontalArrangement = Arrangement.SpaceEvenly
+        horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         items(list.count()) { i ->
             Image(
-                BitmapFactory.decodeFile(createOrGetThumbnail(list[i].path))
+                BitmapFactory.decodeFile(createOrGetVideoThumbnail(list[i].path))
                     .asImageBitmap(),
                 null,
                 contentScale = ContentScale.Crop,
@@ -46,7 +45,9 @@ fun PhotosGrid(padding: PaddingValues, list: SnapshotStateList<Photo>) {
                     .clip(RoundedCornerShape(20.dp))
                     .combinedClickable(
                         onClick = {
-                            openPhoto(list[i], context)
+                            val intent = Intent(Intent.ACTION_VIEW)
+                                .setDataAndType(list[i].uri, "video/*")
+                            context.startActivity(intent)
                         }
                     )
             )

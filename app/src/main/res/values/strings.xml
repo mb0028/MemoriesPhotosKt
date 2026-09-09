@@ -35,4 +35,6 @@
     <string name="camera_write_comment">write comment...</string>
     <string name="camera_permission_is_denied">Camera permission is denied.</string>
     <string name="open_settings">Open Settings</string>
+    <string name="videos">Videos</string>
+    <string name="title_activity_albums">AlbumsActivity</string>
 </resources>

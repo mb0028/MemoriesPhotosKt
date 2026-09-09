@@ -1,8 +1,6 @@
 package mb28.monoP
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.Window
 import androidx.activity.ComponentActivity
@@ -12,7 +10,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -39,21 +36,20 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
-import androidx.core.view.WindowCompat
-import androidx.lifecycle.ViewModelProvider
-import mb28.monoP.icons.settings
 import mb28.monoP.core.Settings.load
 import mb28.monoP.core.Settings.requestAllFilesAccessOrFinish
+import mb28.monoP.core.photosList
 import mb28.monoP.core.refreshPhotosLists
+import mb28.monoP.core.videosList
 import mb28.monoP.icons.add_a_photo
-import mb28.monoP.icons.gallery_thumbnail
-import mb28.monoP.icons.gallery_thumbnail_filled
 import mb28.monoP.icons.photo_album
 import mb28.monoP.icons.photo_album_filled
 import mb28.monoP.icons.photo_prints
 import mb28.monoP.icons.photo_prints_filled
-import mb28.monoP.ui.MoreTab
+import mb28.monoP.icons.settings
+import mb28.monoP.ui.AlbumsPage
 import mb28.monoP.ui.PhotosGrid
+import mb28.monoP.ui.VideosGrid
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
 
 class MainActivity : ComponentActivity() {
@@ -75,10 +71,6 @@ class MainActivity : ComponentActivity() {
         requestAllFilesAccessOrFinish()
         load()
 
-        if (checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.READ_MEDIA_IMAGES), 0)
-        }
-
         super.onCreate(savedInstanceState)
         refreshPhotosLists(this)
 
@@ -88,7 +80,8 @@ class MainActivity : ComponentActivity() {
                 val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
                 Scaffold(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
                         .nestedScroll(scrollBehavior.nestedScrollConnection),
                     bottomBar = {
                         NavBar(selectedIndex)
@@ -105,9 +98,8 @@ class MainActivity : ComponentActivity() {
                             title = { Text(
                                 when(selectedIndex.intValue) {
                                     0 -> stringResource(R.string.photos)
-                                    1 -> stringResource(R.string.more)
-                                    2 -> stringResource(R.string.albums)
-                                    else -> ""
+                                    1 -> stringResource(R.string.videos)
+                                    else -> stringResource(R.string.albums)
                                 }
                             ) },
                             actions = {
@@ -130,23 +122,27 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 ) { padding ->
-                    val tp = padding.calculateTopPadding()
                     when(selectedIndex.intValue) {
-                        0 -> PhotosGrid(padding)
-                        1 -> MoreTab(Modifier.padding(top = tp))
-                        else -> {}
+                        0 -> PhotosGrid(padding, photosList)
+                        1 -> VideosGrid(padding, videosList)
+                        else -> AlbumsPage(padding)
                     }
                 }
             }
         }
     }
+
+    override fun onResume() {
+        refreshPhotosLists(this)
+        super.onResume()
+    }
 }
 
 @Composable
 fun NavBar(selectedIndex: MutableIntState) {
-    val tabs = listOf(stringResource(R.string.photos), stringResource(R.string.more), stringResource(R.string.albums))
-    val icons = listOf(photo_prints, gallery_thumbnail, photo_album)
-    val sIcons = listOf(photo_prints_filled, gallery_thumbnail_filled, photo_album_filled)
+    val tabs = listOf(stringResource(R.string.photos), stringResource(R.string.videos), stringResource(R.string.albums))
+    val icons = listOf(photo_prints, photo_prints, photo_album)
+    val sIcons = listOf(photo_prints_filled, photo_prints_filled, photo_album_filled)
 
     ShortNavigationBar {
         tabs.forEachIndexed { i, item ->
