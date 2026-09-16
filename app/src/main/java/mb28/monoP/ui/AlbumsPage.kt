@@ -7,46 +7,29 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import mb28.monoP.AlbumsActivity
 import mb28.monoP.EXTRA_ALBUM_FOLDER_PATH
 import mb28.monoP.core.createOrGetThumbnail
+import mb28.monoP.core.failedThumbnailIcon
 import mb28.monoP.core.folders
-import mb28.monoP.core.openPhoto
-import mb28.monoP.core.photosList
-import mb28.monoP.core.refreshPhotosLists
-import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -54,11 +37,12 @@ fun AlbumsPage(padding: PaddingValues) {
     val context = LocalActivity.current!!
 
     Column(
-        Modifier.padding(padding).padding(bottom = 5.dp)
+        Modifier.padding(top = padding.calculateTopPadding())
     ) {
         LazyVerticalGrid(
             columns = GridCells.FixedSize(180.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            contentPadding = PaddingValues(vertical = 150.dp)
         ) {
             items(folders.count()) { i ->
                 val f = folders.keys.elementAt(i)
@@ -69,9 +53,10 @@ fun AlbumsPage(padding: PaddingValues) {
                         RoundedCornerShape(20.dp)
                     )
                 ) {
+                    val path = createOrGetThumbnail(t.path)
                     Image(
-                        BitmapFactory.decodeFile(createOrGetThumbnail(t.path))
-                            .asImageBitmap(),
+                        if (path != null) BitmapFactory.decodeFile(path).asImageBitmap()
+                        else failedThumbnailIcon(context),
                         null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier

@@ -18,11 +18,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import mb28.monoP.R
 import mb28.monoP.core.Photo
 import mb28.monoP.core.createOrGetThumbnail
+import mb28.monoP.core.failedThumbnailIcon
 import mb28.monoP.core.openPhoto
-import mb28.monoP.core.photosList
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -35,9 +38,10 @@ fun PhotosGrid(padding: PaddingValues, list: SnapshotStateList<Photo>) {
     horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         items(list.count()) { i ->
+            val path = createOrGetThumbnail(list[i].path)
             Image(
-                BitmapFactory.decodeFile(createOrGetThumbnail(list[i].path))
-                    .asImageBitmap(),
+                if (path != null) BitmapFactory.decodeFile(path).asImageBitmap()
+                    else failedThumbnailIcon(context),
                 null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

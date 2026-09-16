@@ -11,10 +11,13 @@ import android.provider.MediaStore
 import android.util.Size
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.core.content.FileProvider
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.core.graphics.drawable.toBitmap
 import androidx.exifinterface.media.ExifInterface
 import mb28.monoP.EXTRA_PATH
 import mb28.monoP.PhotoViewerActivity
+import mb28.monoP.R
 import mb28.monoP.core.Settings.inAppPhotoViewer
 import java.io.File
 import java.io.FileOutputStream
@@ -165,34 +168,49 @@ fun restore(path: String) {
     File(path).renameTo(File(path.removePrefix(TRASH_NAME)))
 }
 
-
-fun createOrGetThumbnail(path: String): String {
-    val pathHash = path.hashCode()
-    val thumbnailFile = File("${Settings.appCacheThumbsFolder}/$pathHash.jpeg")
-    if (!thumbnailFile.exists()) {
-        thumbnailFile.createNewFile()
-        val t = ThumbnailUtils.createImageThumbnail(File(path),
-            Size(350, 500), null)
-        val outputStream = FileOutputStream(thumbnailFile)
-        t.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
-        outputStream.flush()
-        outputStream.close()
+private var pFailedThumbnailIcon: ImageBitmap? = null
+fun failedThumbnailIcon(context: Context): ImageBitmap {
+    if(pFailedThumbnailIcon == null) {
+        pFailedThumbnailIcon = context.getDrawable(R.mipmap.app_icon_foreground)!!.toBitmap().asImageBitmap()
     }
-    return thumbnailFile.path
+    return pFailedThumbnailIcon!!
 }
 
-fun createOrGetVideoThumbnail(path: String): String {
+fun createOrGetThumbnail(path: String): String? {
     val pathHash = path.hashCode()
     val thumbnailFile = File("${Settings.appCacheThumbsFolder}/$pathHash.jpeg")
     if (!thumbnailFile.exists()) {
-        thumbnailFile.createNewFile()
-        val t = ThumbnailUtils.createVideoThumbnail(File(path),
-            Size(350, 500), null)
-        val outputStream = FileOutputStream(thumbnailFile)
-        t.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
-        outputStream.flush()
-        outputStream.close()
+        try {
+            thumbnailFile.createNewFile()
+            val t = ThumbnailUtils.createImageThumbnail(File(path),
+                Size(500, 500), null)
+            val outputStream = FileOutputStream(thumbnailFile)
+            t.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
+            outputStream.flush()
+            outputStream.close()
+        } catch (_: Exception) {
+            return null
+        }
     }
-    return thumbnailFile.path
+    return if (thumbnailFile.length() > 0) thumbnailFile.path else null
+}
+
+fun createOrGetVideoThumbnail(path: String): String? {
+    val pathHash = path.hashCode()
+    val thumbnailFile = File("${Settings.appCacheThumbsFolder}/$pathHash.jpeg")
+    if (!thumbnailFile.exists()) {
+        try {
+            thumbnailFile.createNewFile()
+            val t = ThumbnailUtils.createVideoThumbnail(File(path),
+                Size(500, 500), null)
+            val outputStream = FileOutputStream(thumbnailFile)
+            t.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
+            outputStream.flush()
+            outputStream.close()
+        } catch (_: Exception) {
+            return null
+        }
+    }
+    return if (thumbnailFile.length() > 0) thumbnailFile.path else null
 }
 

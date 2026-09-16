@@ -1,20 +1,28 @@
 package mb28.monoP
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.FloatingToolbarDefaults
+import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -25,11 +33,14 @@ import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.VerticalFloatingToolbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -56,10 +67,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
-        with(window) {
-            window.isNavigationBarContrastEnforced = false
-            requestFeature(Window.FEATURE_ACTIVITY_TRANSITIONS)
-        }
+        window.isNavigationBarContrastEnforced = false
 
         val shortcut = ShortcutInfoCompat.Builder(this, "settings")
             .setShortLabel("Settings")
@@ -84,7 +92,12 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .nestedScroll(scrollBehavior.nestedScrollConnection),
                     bottomBar = {
-                        NavBar(selectedIndex)
+                        Box(
+                            Modifier.fillMaxSize(),
+                            Alignment.CenterEnd
+                        ) {
+                            NavBar(selectedIndex, this@MainActivity)
+                        }
                     },
                     topBar = {
                         TopAppBar(
@@ -108,18 +121,6 @@ class MainActivity : ComponentActivity() {
                                 }) { Icon(settings, null) }
                             }
                         )
-                    },
-                    floatingActionButton = {
-                        FloatingActionButton(
-                            {
-                                val intent = Intent(this, Camera::class.java)
-                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                startActivity(intent)
-                            },
-                            elevation = FloatingActionButtonDefaults.elevation(0.dp,0.dp)
-                        ) {
-                            Icon(add_a_photo, null)
-                        }
                     }
                 ) { padding ->
                     when(selectedIndex.intValue) {
@@ -139,16 +140,35 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun NavBar(selectedIndex: MutableIntState) {
+fun NavBar(selectedIndex: MutableIntState, activity: Activity) {
     val tabs = listOf(stringResource(R.string.photos), stringResource(R.string.videos), stringResource(R.string.albums))
     val icons = listOf(photo_prints, photo_prints, photo_album)
     val sIcons = listOf(photo_prints_filled, photo_prints_filled, photo_album_filled)
 
-    ShortNavigationBar {
+    VerticalFloatingToolbar(
+        true,
+        modifier = Modifier.padding(end = 5.dp).scale(0.9f),
+        colors =  FloatingToolbarDefaults.standardFloatingToolbarColors(
+            MaterialTheme.colorScheme.surfaceContainerLowest.copy(0.9f)
+        ),
+        leadingContent = {
+            FloatingActionButton(
+                {
+                    val intent = Intent(activity, Camera::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    activity.startActivity(intent)
+                },
+                shape = CircleShape,
+                elevation = FloatingActionButtonDefaults.elevation(0.dp,0.dp)
+            ) {
+                Icon(add_a_photo, null)
+            }
+        }
+    ) {
         tabs.forEachIndexed { i, item ->
             ShortNavigationBarItem(
                 selected = selectedIndex.intValue == i,
-                iconPosition = NavigationItemIconPosition.Start,
+                iconPosition = NavigationItemIconPosition.Top,
                 icon = {
                     Icon(
                         if (selectedIndex.intValue == i) sIcons[i] else icons[i],

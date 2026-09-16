@@ -19,9 +19,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import mb28.monoP.core.Photo
+import mb28.monoP.core.createOrGetThumbnail
 import mb28.monoP.core.createOrGetVideoThumbnail
+import mb28.monoP.core.failedThumbnailIcon
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -34,9 +37,10 @@ fun VideosGrid(padding: PaddingValues, list: SnapshotStateList<Photo>) {
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         items(list.count()) { i ->
+            val path = createOrGetVideoThumbnail(list[i].path)
             Image(
-                BitmapFactory.decodeFile(createOrGetVideoThumbnail(list[i].path))
-                    .asImageBitmap(),
+                if (path != null) BitmapFactory.decodeFile(path).asImageBitmap()
+                else failedThumbnailIcon(context),
                 null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

@@ -69,9 +69,7 @@ class PhotoViewerActivity : ComponentActivity() {
         with(window) {
             isNavigationBarContrastEnforced = false
             requestFeature(Window.FEATURE_ACTIVITY_TRANSITIONS)
-            allowEnterTransitionOverlap = true
             allowReturnTransitionOverlap = true
-            enterTransition = Slide()
             exitTransition = Slide()
         }
 
