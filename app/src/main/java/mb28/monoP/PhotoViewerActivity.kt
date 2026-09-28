@@ -36,8 +36,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import mb28.monoP.core.Settings
 import mb28.monoP.core.Settings.allowRotationGesture
-import mb28.monoP.ui.components.ViewerBottomDrawer
-import mb28.monoP.ui.components.ViewerTopAppBar
+import mb28.monoP.ui.other.ViewerBottomDrawer
+import mb28.monoP.ui.other.ViewerTopAppBar
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
 
 class PhotoViewerActivity : ComponentActivity() {

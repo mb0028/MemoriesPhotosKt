@@ -38,21 +38,22 @@ import mb28.monoP.core.createOrGetVideoThumbnail
 import mb28.monoP.core.failedThumbnailIcon
 import mb28.monoP.core.openPhoto
 import mb28.monoP.core.openVideo
-import mb28.monoP.core.photosList
-import mb28.monoP.core.videosList
 import java.io.File
+
+
+var photosInTrash = mutableStateListOf<String>()
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TrashGrid(padding: PaddingValues, activity: Activity, showVideos: Boolean = false) {
     var refreshing by remember { mutableStateOf(true) }
-    val trashedImages = remember { mutableStateListOf<String>() }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
+            photosInTrash.clear()
             File(Environment.getExternalStorageDirectory().path).walkTopDown().forEach {
                 if (it.path.contains(TRASH_NAME))
-                    trashedImages.add(it.path)
+                    photosInTrash.add(it.path)
             }
             refreshing = false
         }
@@ -65,14 +66,14 @@ fun TrashGrid(padding: PaddingValues, activity: Activity, showVideos: Boolean = 
     } else {
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
-            contentPadding = padding,
+            contentPadding = PaddingValues(bottom = 250.dp, top = padding.calculateTopPadding()),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            items(trashedImages.count()) { i ->
+            items(photosInTrash.count()) { i ->
                 var thumb by remember { mutableStateOf<ImageBitmap?>(null) }
                 LaunchedEffect(Unit)  {
-                    val thumbPath = if (showVideos) createOrGetVideoThumbnail(trashedImages[i])
-                    else createOrGetThumbnail(trashedImages[i])
+                    val thumbPath = if (showVideos) createOrGetVideoThumbnail(photosInTrash[i])
+                    else createOrGetThumbnail(photosInTrash[i])
                     withContext(Dispatchers.IO) {
                         thumb = if (thumbPath != null) BitmapFactory.decodeFile(thumbPath)
                             .asImageBitmap() else null
@@ -89,9 +90,9 @@ fun TrashGrid(padding: PaddingValues, activity: Activity, showVideos: Boolean = 
                         .combinedClickable(
                             onClick = {
                                 if (showVideos)
-                                    openVideo(trashedImages[i], activity)
+                                    openVideo(photosInTrash[i], activity)
                                 else
-                                    openPhoto(trashedImages[i], activity)
+                                    openPhoto(photosInTrash[i], activity)
                             }
                         )
                 )

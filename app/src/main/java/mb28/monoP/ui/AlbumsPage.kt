@@ -40,6 +40,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mb28.monoP.AlbumsActivity
 import mb28.monoP.EXTRA_ALBUM_FOLDER_PATH
+import mb28.monoP.core.TRASH_NAME
 import mb28.monoP.core.createOrGetThumbnail
 import mb28.monoP.core.createOrGetVideoThumbnail
 import mb28.monoP.core.failedThumbnailIcon
@@ -70,7 +71,7 @@ fun AlbumsPage(padding: PaddingValues, activity: Activity) {
                         if (!files.isNullOrEmpty()) {
                             files.removeIf {
                                 val path = it.path
-                                !(path.endsWith(".jpg") || path.endsWith(".jpeg")
+                                path.contains(TRASH_NAME) || !(path.endsWith(".jpg") || path.endsWith(".jpeg")
                                         || path.endsWith(".png") || path.endsWith(".mp4"))
                             }
                             if (files.isNotEmpty()) {

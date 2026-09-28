@@ -38,6 +38,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import mb28.monoP.core.TRASH_NAME
 import mb28.monoP.core.createOrGetThumbnail
 import mb28.monoP.core.createOrGetVideoThumbnail
 import mb28.monoP.core.failedThumbnailIcon
@@ -91,8 +92,8 @@ class AlbumsActivity : ComponentActivity() {
                                 it.reverse()
                                 it.forEach { file ->
                                     val f = file.path
-                                    if (f.endsWith(".jpg") || f.endsWith(".jpeg") ||
-                                        f.endsWith(".png") || f.endsWith(".mp4"))
+                                    if (!f.contains(TRASH_NAME) && (f.endsWith(".jpg") || f.endsWith(".jpeg") ||
+                                        f.endsWith(".png") || f.endsWith(".mp4")))
                                         folderPhotoVideos.add(f)
                                 }
                             }

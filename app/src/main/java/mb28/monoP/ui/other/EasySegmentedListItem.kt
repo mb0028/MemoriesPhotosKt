@@ -1,4 +1,4 @@
-package mb28.monoP.ui.components
+package mb28.monoP.ui.other
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height

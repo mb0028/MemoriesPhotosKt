@@ -1,10 +1,9 @@
-package mb28.monoP.ui.components
+package mb28.monoP.ui.other
 
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.widget.Toast
-import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,16 +16,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SheetValue
@@ -45,7 +39,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,9 +49,6 @@ import mb28.monoP.icons.favorite
 import mb28.monoP.icons.heart_plus
 import mb28.monoP.R
 import mb28.monoP.core.Settings
-import mb28.monoP.core.deleteOrTrash
-import mb28.monoP.core.editComment
-import mb28.monoP.core.getComment
 import mb28.monoP.icons.add_2
 import mb28.monoP.icons.camera
 import mb28.monoP.icons.comic_bubble
@@ -69,6 +59,9 @@ import mb28.monoP.icons.lens_blur
 import mb28.monoP.icons.my_location
 import mb28.monoP.icons.pageless
 import mb28.monoP.icons.photo_camera
+import mb28.monoP.ui.popups.DeletePopup
+import mb28.monoP.ui.popups.EditCommentPopup
+import mb28.monoP.ui.popups.UsePhotoPopup
 import java.io.File
 import java.util.Date
 import kotlin.math.roundToInt
@@ -78,7 +71,7 @@ private const val QMARKS3 = "???"
 @SuppressLint("SdCardPath")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ViewerBottomDrawer(path: String, context: Activity, modifier: Modifier = Modifier) {
+fun ViewerBottomDrawer(path: String, activity: Activity, modifier: Modifier = Modifier) {
     val exif = remember { ExifInterface(path) }
     val padding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val st = rememberBottomSheetScaffoldState()
@@ -91,6 +84,7 @@ fun ViewerBottomDrawer(path: String, context: Activity, modifier: Modifier = Mod
 
     var deleteDia by remember { mutableStateOf(false) }
     var editCommentDia by remember { mutableStateOf(false) }
+    var usePhotoDia by remember { mutableStateOf(false) }
 
     BottomSheetScaffold(
         scaffoldState = st,
@@ -115,9 +109,7 @@ fun ViewerBottomDrawer(path: String, context: Activity, modifier: Modifier = Mod
                 }) {
                     Icon(draw, null)
                 }
-                IconButton({
-
-                }) {
+                IconButton({ usePhotoDia = true}) {
                     Icon(add_2, null)
                 }
                 IconButton({ editCommentDia = true }) {
@@ -351,75 +343,26 @@ fun ViewerBottomDrawer(path: String, context: Activity, modifier: Modifier = Mod
     ) { }
 
     if (deleteDia) {
-        val todText = if (Settings.trashInstead) stringResource(R.string.move_to_trash) else stringResource(R.string.delete)
-        AlertDialog(
-            { deleteDia = false },
-            {
-                Button({
-                    deleteOrTrash(path)
-                    Toast.makeText(context, "${if (Settings.trashInstead) "Trashed" else "Deleted"} $path",
-                        Toast.LENGTH_SHORT).show()
-                    deleteDia = false
-                    context.finish()
-                }) {
-                    Text(todText)
-                }
-            },
-            dismissButton = {
-                OutlinedButton({ editCommentDia = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-            title = {
-                Text("$todText?")
-            },
-            text = {
-                Text(path)
+        DeletePopup(path) {
+            deleteDia = false
+            if (it) {
+                Toast.makeText(activity, "${if (Settings.trashInstead) "Trashed" else "Deleted"} $path",
+                    Toast.LENGTH_SHORT).show()
+                activity.finish()
             }
-        )
+        }
     }
 
     if (editCommentDia) {
-        val c = getComment(path, false)
-        var newComment by remember { mutableStateOf(c) }
-        AlertDialog(
-            { editCommentDia = false },
-            {
-                Button({
-                    if (newComment.isNotBlank()) {
-                        editComment(path, newComment)
-                    } else {
-                        editComment(path, null)
-                    }
-                    editCommentDia = false
-                }) {
-                    Text(stringResource(R.string.save))
-                }
-            },
-            dismissButton = {
-                OutlinedButton({ editCommentDia = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-            title = {
-                Text(stringResource(R.string.change_comment))
-            },
-            text = {
-                OutlinedTextField(
-                    newComment,
-                    {newComment = it},
-                    minLines = 3,
-                    maxLines = 3,
-                    shape = OutlinedTextFieldDefaults.roundedShape,
-                    textStyle = TextStyle(
-                        fontSize = 18.sp
-                    ),
-                    label = {
-                        Text(stringResource(R.string.comment))
-                    }
-                )
-            }
-        )
+        EditCommentPopup(path) {
+            editCommentDia = false
+        }
+    }
+
+    if (usePhotoDia) {
+        UsePhotoPopup(path, activity) {
+            usePhotoDia = false
+        }
     }
 
 }

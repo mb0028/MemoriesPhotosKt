@@ -94,14 +94,14 @@ fun openPhoto(path: String, context: Activity) {
         context.startActivity(intent)
     } else {
         val intent = Intent(Intent.ACTION_VIEW)
-            .setDataAndType(getUri(path, context), "image/*")
+            .setDataAndType(getUriImage(path, context), "image/*")
         context.startActivity(intent)
     }
 }
 
 fun openVideo(path: String, context: Activity) {
     val intent = Intent(Intent.ACTION_VIEW)
-        .setDataAndType(getUri(path, context), "video/*")
+        .setDataAndType(getUriVideo(path, context), "video/*")
     context.startActivity(intent)
 }
 
@@ -177,7 +177,7 @@ suspend fun createOrGetVideoThumbnail(path: String): String? = withContext(Dispa
     return@withContext if (thumbnailFile.length() > 0) thumbnailFile.path else null
 }
 
-private fun getUri(path: String, context: Context): Uri? {
+fun getUriVideo(path: String, context: Context): Uri? {
     context.contentResolver.query(
         MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
         arrayOf(MediaStore.Video.Media._ID),
@@ -186,8 +186,24 @@ private fun getUri(path: String, context: Context): Uri? {
         null
     )?.use {
         if (it.moveToFirst()) {
-            val id = it.getLong(it.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
+            val id = it.getLong(it.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
             return ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
+        }
+    }
+    return null
+}
+
+fun getUriImage(path: String, context: Context): Uri? {
+    context.contentResolver.query(
+        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+        arrayOf(MediaStore.Images.Media._ID),
+        "${MediaStore.Images.Media.DATA} = ?",
+        arrayOf(path),
+        null
+    )?.use {
+        if (it.moveToFirst()) {
+            val id = it.getLong(it.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
+            return ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
         }
     }
     return null

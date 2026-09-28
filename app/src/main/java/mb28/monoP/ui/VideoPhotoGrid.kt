@@ -40,7 +40,7 @@ val photoVideoGridState = LazyGridState()
 fun VideoPhotoGrid(padding: PaddingValues, activity: Activity, showVideos: Boolean = false) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
-        contentPadding = padding,
+        contentPadding = PaddingValues(bottom = 250.dp, top = padding.calculateTopPadding()),
         horizontalArrangement = Arrangement.SpaceEvenly,
         state = photoVideoGridState
     ) {

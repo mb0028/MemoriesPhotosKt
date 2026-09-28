@@ -236,8 +236,10 @@ fun ShutterRow(interactionSource:  MutableInteractionSource, context: Activity) 
 
                                 val e = ExifInterface(capturedPath)
                                 e.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, MAKER_NOTE_P)
-                                if (Settings.addCommentAfterCapture && lastComment.isNotBlank()) {
+                                if (Settings.addCommentAfterCapture && lastComment.isNotBlank() && lastComment.isNotEmpty()) {
                                     e.setAttribute(ExifInterface.TAG_USER_COMMENT, lastComment)
+                                } else {
+                                    e.setAttribute(ExifInterface.TAG_USER_COMMENT, null)
                                 }
                                 e.saveAttributes()
                             }

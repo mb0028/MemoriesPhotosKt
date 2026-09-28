@@ -3,19 +3,29 @@ package mb28.monoP
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
@@ -46,11 +56,14 @@ import androidx.core.graphics.drawable.IconCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import mb28.monoP.core.Settings
 import mb28.monoP.core.Settings.load
 import mb28.monoP.core.Settings.requestAllFilesAccessOrFinish
 import mb28.monoP.core.refreshPhotosLists
 import mb28.monoP.icons.add_a_photo
+import mb28.monoP.icons.arrow_back
 import mb28.monoP.icons.delete_forever
+import mb28.monoP.icons.pageless
 import mb28.monoP.icons.photo_album
 import mb28.monoP.icons.photo_album_filled
 import mb28.monoP.icons.photo_prints
@@ -59,6 +72,8 @@ import mb28.monoP.icons.settings
 import mb28.monoP.ui.AlbumsPage
 import mb28.monoP.ui.TrashGrid
 import mb28.monoP.ui.VideoPhotoGrid
+import mb28.monoP.ui.photoVideoGridState
+import mb28.monoP.ui.popups.ClearTrashPopup
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -91,9 +106,27 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier
                         .fillMaxSize()
                         .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    floatingActionButton = {
+                        val visibility = remember { MutableTransitionState(false) }.apply { targetState = true }
+                        visibility.targetState = (photoVideoGridState.scrollIndicatorState?.scrollOffset ?: 0) > 500
+
+                        AnimatedVisibility(
+                            visibility,
+                            enter = fadeIn() + scaleIn(),
+                            exit = fadeOut() + scaleOut()
+                        ) {
+                            FloatingActionButton(
+                                { lifecycleScope.launch { photoVideoGridState.scrollToItem(0) } }
+                            ) {
+                                Icon(arrow_back, null)
+                            }
+                        }
+                    },
                     bottomBar = {
                         Box(
-                            Modifier.fillMaxSize().navigationBarsPadding(),
+                            Modifier.fillMaxWidth()
+                                .navigationBarsPadding()
+                                .padding(bottom = 5.dp),
                             Alignment.BottomCenter
                         ) {
                             NavBar(selectedIndex, this@MainActivity)
@@ -117,6 +150,21 @@ class MainActivity : ComponentActivity() {
                                 }
                             ) },
                             actions = {
+                                if (selectedIndex.intValue == -1) {
+                                    var clearDia by remember { mutableStateOf(false) }
+                                    IconButton({
+                                        clearDia = true
+                                    }) { Icon(delete_forever, null) }
+                                    if (clearDia) {
+                                        ClearTrashPopup {
+                                            clearDia = false
+                                            if (it) {
+                                                Toast.makeText(this@MainActivity, "Cleared trash",
+                                                    Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    }
+                                }
                                 IconButton({
                                     startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
                                 }) { Icon(settings, null) }
@@ -158,7 +206,7 @@ fun NavBar(selectedIndex: MutableIntState, activity: Activity) {
 
     HorizontalFloatingToolbar(
         true,
-        contentPadding = PaddingValues(5.dp),
+        contentPadding = PaddingValues(horizontal = 5.dp),
         colors =  FloatingToolbarDefaults.standardFloatingToolbarColors(
             MaterialTheme.colorScheme.surfaceContainerLowest.copy(0.95f)
         ),
@@ -190,7 +238,8 @@ fun NavBar(selectedIndex: MutableIntState, activity: Activity) {
                     )
                 },
                 label = { Text(item) },
-                onClick = { selectedIndex.intValue = i }
+                onClick = { selectedIndex.intValue = i },
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
         }
     }
