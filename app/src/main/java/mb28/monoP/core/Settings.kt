@@ -33,7 +33,6 @@ object Settings {
     var allowRotationGesture by mutableStateOf(true)
     var onlyShowDCIM by mutableStateOf(false)
     var trashInstead by mutableStateOf(true)
-    var useMediaStoreDelete by mutableStateOf(false)
 
     var lockFocusWithShutter by mutableStateOf(true)
     var lockExposureWithShutter by mutableStateOf(true)
@@ -42,6 +41,7 @@ object Settings {
     var imageCaptureFlashMode by mutableIntStateOf(2)
     var startCameraMode by mutableIntStateOf(0)
     var cameraAspect by mutableIntStateOf(0)
+    var useBilinear by mutableStateOf(false)
     var mediaStore_sql_sorting by mutableStateOf("${MediaStore.Images.Media.DATE_ADDED} DESC, ${MediaStore.Images.Media.DATE_MODIFIED} DESC, ${MediaStore.Images.Media.DATE_TAKEN} DESC")
 
     fun load() {
@@ -70,7 +70,6 @@ object Settings {
                     s.startsWith("[InAppPV]") -> inAppPhotoViewer = s.removePrefix("[InAppPV]").toBooleanStrict()
                     s.startsWith("[InAppCam]") -> inAppCamera = s.removePrefix("[InAppCam]").toBooleanStrict()
                     s.startsWith("[IT]") -> trashInstead = s.removePrefix("[IT]").toBooleanStrict()
-                    s.startsWith("[MSD]") -> useMediaStoreDelete = s.removePrefix("[MSD]").toBooleanStrict()
                     s.startsWith("[Cam Lock Focus]") -> lockFocusWithShutter = s.removePrefix("[Cam Lock Focus]").toBooleanStrict()
                     s.startsWith("[Cam Lock Expo]") -> lockExposureWithShutter = s.removePrefix("[Cam Lock Expo]").toBooleanStrict()
                     s.startsWith("[Cam Add Comment]") -> addCommentAfterCapture = s.removePrefix("[Cam Add Comment]").toBooleanStrict()
@@ -79,6 +78,7 @@ object Settings {
                     s.startsWith("[Cam Start Mode]") -> startCameraMode = s.removePrefix("[Cam Start Mode]").toInt().coerceIn(0, 2)
                     s.startsWith("[Cam Aspect]") -> cameraAspect = s.removePrefix("[Cam Aspect]").toInt().coerceIn(0, 4)
                     s.startsWith("[Sorting]") -> mediaStore_sql_sorting = s.removePrefix("[Sorting]")
+                    s.startsWith("[Use Bilinear]") -> useBilinear = s.removePrefix("[Use Bilinear]").toBooleanStrict()
                 }
             }
         } else {
@@ -95,9 +95,9 @@ object Settings {
         data += "[ROTA]$allowRotationGesture\n"
         data += "[OSDCIM]$onlyShowDCIM\n"
         data += "[IT]$trashInstead\n"
-        data += "[MSD]$useMediaStoreDelete\n"
         data += "[SSC]$specialSectionsCount\n"
         data += "[Sorting]$mediaStore_sql_sorting\n"
+        data += "[Use Bilinear]$useBilinear\n"
 
         data += "\n[Camera Settings]\n"
         data += "[Cam Lock Focus]$lockFocusWithShutter\n"

@@ -33,15 +33,15 @@ fun ShutterButton(interactionSource: MutableInteractionSource, onClick: () -> Un
     val animatedScale: Float by animateFloatAsState(
         if (isPressed) 0.75f else 1f,
         animationSpec = SpringSpec(
-            dampingRatio = 0.2f,
+            dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMediumLow
         )
     )
     Card(
         shape = CircleShape,
-        colors = CardDefaults.cardColors().copy(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.surface
+        colors = CardDefaults.cardColors(
+            MaterialTheme.colorScheme.primary,
+            MaterialTheme.colorScheme.surface
         ),
         modifier = Modifier
             .width(85.dp)
@@ -56,13 +56,13 @@ fun ShutterButton(interactionSource: MutableInteractionSource, onClick: () -> Un
             shape = RoundedPolygon.star(
                 6,
                 radius = 1f,
-                innerRadius = 0.5f,
+                innerRadius = 0.6f,
                 rounding = CornerRounding(5f)
             ).toShape(),
             modifier = Modifier
                 .fillMaxSize()
                 .scale(animatedScale)
-                .padding(18.dp)
+                .padding(20.dp)
         ) { }
     }
 }

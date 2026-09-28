@@ -35,7 +35,6 @@ import mb28.monoP.icons.settings_photo_camera
 fun CameraAppBar(
     activity: Activity,
     controller: LifecycleCameraController,
-    modifier: Modifier,
     onAspectChanged: (Int) -> Unit,
 ) {
     TopAppBar(
@@ -44,7 +43,6 @@ fun CameraAppBar(
             MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
             actionIconContentColor = MaterialTheme.colorScheme.primary
         ),
-        modifier = modifier,
         navigationIcon = {
             IconButton(
                 { activity.finish() },

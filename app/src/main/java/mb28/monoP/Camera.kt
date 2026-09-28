@@ -8,8 +8,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalZeroShutterLag
@@ -24,17 +24,15 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -52,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -62,7 +61,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
-import androidx.core.view.WindowCompat
 import androidx.exifinterface.media.ExifInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
@@ -73,7 +71,6 @@ import mb28.monoP.core.Settings.requestAllFilesAccessOrFinish
 import mb28.monoP.icons.flip_camera_android
 import mb28.monoP.icons.photo_prints
 import mb28.monoP.ui.camera.CameraAppBar
-import mb28.monoP.ui.camera.CameraBgShape
 import mb28.monoP.ui.camera.CameraPermissionPage
 import mb28.monoP.ui.camera.ShutterButton
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
@@ -86,6 +83,7 @@ class Camera : ComponentActivity() {
     @androidx.annotation.OptIn(ExperimentalZeroShutterLag::class)
     @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         setupWindowAndShortcuts()
         requestAllFilesAccessOrFinish()
         load()
@@ -109,30 +107,36 @@ class Camera : ComponentActivity() {
         setContent {
             MemoriesPhotosTheme {
                 val interactionSource = remember { MutableInteractionSource() }
-                val isShutterPressed by interactionSource.collectIsPressedAsState()
-                val uiAlpha: Float by animateFloatAsState(
-                    if (isShutterPressed) 0f else 0.75f
-                )
+//                val isShutterPressed by interactionSource.collectIsPressedAsState()
+//                val uiScale: Float by animateFloatAsState(
+//                    if (isShutterPressed) 0.95f else 1f
+//                )
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
-                        CameraAppBar(this, cameraController, Modifier.alpha(uiAlpha)) {
+                        CameraAppBar(this, cameraController) {
                             changeAspect(it)
                         }
                     },
                     bottomBar = {
-                        ShutterRow(interactionSource, uiAlpha)
+                        ShutterRow(interactionSource, this)
                     }
                 ) { i -> i
                     if (permission == PackageManager.PERMISSION_GRANTED) {
-                        AndroidView(
-                            { previewView },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(if (Settings.cameraAspect == 0) 670.dp else 860.dp)
-                                .padding(top = i.calculateTopPadding())
-                        )
+                        Box(
+                            Modifier.fillMaxSize().statusBarsPadding().padding(top = 65.dp),
+                            Alignment.TopCenter
+                        ) {
+                            AndroidView(
+                                { previewView },
+                                modifier = Modifier.aspectRatio(when(Settings.cameraAspect) {
+                                    0 -> 3f / 4f
+                                    1 -> 9f / 16f
+                                    else -> 0f
+                                })
+                            )
+                        }
                     } else {
                         CameraPermissionPage()
                     }
@@ -153,25 +157,21 @@ class Camera : ComponentActivity() {
 }
 
 @Composable
-fun ShutterRow(interactionSource:  MutableInteractionSource, uiAlpha: Float) {
-    val context = LocalActivity.current!!
+fun ShutterRow(interactionSource:  MutableInteractionSource, context: Activity) {
     val scope = rememberCoroutineScope()
     var capturedPath by remember { mutableStateOf("") }
-    val bPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 5.dp
     var lastComment by remember { mutableStateOf("") }
 
-    Box(
-        contentAlignment = Alignment.BottomCenter
+    Column(
+        Modifier.navigationBarsPadding().padding(bottom = 5.dp),
+        Arrangement.Center,
+        Alignment.CenterHorizontally
     ) {
-        CameraBgShape(
-            Modifier
-                .offset(y = 210.dp - bPadding)
-                .alpha(uiAlpha)
-        )
         if (Settings.addCommentAfterCapture) {
             TextField(
                 lastComment,
                 { lastComment = it },
+                singleLine = true,
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
@@ -180,7 +180,6 @@ fun ShutterRow(interactionSource:  MutableInteractionSource, uiAlpha: Float) {
                 textStyle = TextStyle(
                     textAlign = TextAlign.Center
                 ),
-                singleLine = true,
                 placeholder = {
                     Text(
                         stringResource(R.string.camera_write_comment),
@@ -191,16 +190,13 @@ fun ShutterRow(interactionSource:  MutableInteractionSource, uiAlpha: Float) {
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Ascii,
                 ),
-                modifier = Modifier
-                    .width(220.dp)
-                    .height(50.dp)
-                    .offset(y = -(200).dp + bPadding)
+                modifier = Modifier.padding(bottom = 15.dp)
+                    .size(220.dp, 50.dp)
             )
         }
+
         Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(bottom = bPadding),
+            Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -236,8 +232,8 @@ fun ShutterRow(interactionSource:  MutableInteractionSource, uiAlpha: Float) {
                         object : ImageCapture.OnImageSavedCallback {
                             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                                 capturedPath = outputFileResults.savedUri!!.path!!
-                                Toast.makeText(context, "Saved: $capturedPath", Toast.LENGTH_LONG)
-                                    .show()
+                                Toast.makeText(context, "Saved!", Toast.LENGTH_SHORT).show()
+
                                 val e = ExifInterface(capturedPath)
                                 e.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, MAKER_NOTE_P)
                                 if (Settings.addCommentAfterCapture && lastComment.isNotBlank()) {
@@ -263,7 +259,6 @@ fun ShutterRow(interactionSource:  MutableInteractionSource, uiAlpha: Float) {
                     when (cameraController.cameraSelector) {
                         CameraSelector.DEFAULT_BACK_CAMERA -> cameraController.cameraSelector =
                             CameraSelector.DEFAULT_FRONT_CAMERA
-
                         CameraSelector.DEFAULT_FRONT_CAMERA -> cameraController.cameraSelector =
                             CameraSelector.DEFAULT_BACK_CAMERA
                     }
@@ -281,9 +276,6 @@ fun ShutterRow(interactionSource:  MutableInteractionSource, uiAlpha: Float) {
 }
 
 private fun Activity.setupWindowAndShortcuts() {
-    val controller = WindowCompat.getInsetsController(window, window.decorView)
-    controller.isAppearanceLightStatusBars = true
-    controller.isAppearanceLightNavigationBars = true
     window.isNavigationBarContrastEnforced = false
 
     val shortcut = ShortcutInfoCompat.Builder(this, "cam_settings")
@@ -301,7 +293,6 @@ fun changeAspect(asp: Int) {
             AspectRatioStrategy(
                 when(asp) {
                     0 -> AspectRatio.RATIO_4_3
-                    1 -> AspectRatio.RATIO_16_9
                     else -> AspectRatio.RATIO_16_9
                 },
                 AspectRatioStrategy.FALLBACK_RULE_AUTO

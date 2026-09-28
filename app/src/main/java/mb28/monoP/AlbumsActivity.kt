@@ -1,48 +1,69 @@
 package mb28.monoP
 
+import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.toMutableStateList
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import mb28.monoP.core.folders
-import mb28.monoP.ui.PhotosGrid
-import mb28.monoP.ui.VideosGrid
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import mb28.monoP.core.createOrGetThumbnail
+import mb28.monoP.core.createOrGetVideoThumbnail
+import mb28.monoP.core.failedThumbnailIcon
+import mb28.monoP.core.openPhoto
+import mb28.monoP.core.openVideo
+import mb28.monoP.core.photosList
+import mb28.monoP.core.videosList
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
+import java.io.File
 
 const val EXTRA_ALBUM_FOLDER_PATH = "EXTRA_ALBUM_FOLDER_PATH"
-const val EXTRA_IS_VIDEO_ALBUM = "EXTRA_IS_VIDEO_ALBUM"
 
 class AlbumsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
-        with(window) {
-            window.isNavigationBarContrastEnforced = false
-            requestFeature(Window.FEATURE_ACTIVITY_TRANSITIONS)
-        }
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        window.isNavigationBarContrastEnforced = false
 
         val path = intent.getStringExtra(EXTRA_ALBUM_FOLDER_PATH)!!
-        val isVideo = intent.getBooleanExtra(EXTRA_IS_VIDEO_ALBUM, false)
 
         setContent {
             MemoriesPhotosTheme {
                 val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
                 Scaffold(
-                    Modifier.fillMaxSize()
+                    Modifier
+                        .fillMaxSize()
                         .nestedScroll(scrollBehavior.nestedScrollConnection),
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                     topBar = {
@@ -59,11 +80,61 @@ class AlbumsActivity : ComponentActivity() {
                             },
                         )
                     },
-                ) { innerPadding ->
-                    if (isVideo) {
-                        VideosGrid(innerPadding, folders[path]!!.toMutableStateList())
-                    } else {
-                        PhotosGrid(innerPadding, folders[path]!!.toMutableStateList())
+                ) { paddingValues ->
+                    var refreshing by remember { mutableStateOf(true) }
+                    val folderPhotoVideos = remember { mutableStateListOf<String>() }
+
+                    LaunchedEffect(Unit) {
+                        withContext(Dispatchers.IO) {
+                             File(path).listFiles()?.let {
+                                it.sortBy { file -> file.lastModified() }
+                                it.reverse()
+                                it.forEach { file ->
+                                    val f = file.path
+                                    if (f.endsWith(".jpg") || f.endsWith(".jpeg") ||
+                                        f.endsWith(".png") || f.endsWith(".mp4"))
+                                        folderPhotoVideos.add(f)
+                                }
+                            }
+                            refreshing = false
+                        }
+                    }
+                    LazyVerticalGrid(
+                        modifier = Modifier.fillMaxSize(),
+                        columns = GridCells.Fixed(3),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        contentPadding = paddingValues
+                    ) {
+                        items(folderPhotoVideos.count()) { i ->
+                            val isVideo = folderPhotoVideos[i].endsWith(".mp4")
+                            var thumb by remember { mutableStateOf<ImageBitmap?>(null) }
+                            LaunchedEffect(Unit)  {
+                                val thumbPath = if (isVideo) createOrGetVideoThumbnail(folderPhotoVideos[i])
+                                    else createOrGetThumbnail(folderPhotoVideos[i])
+                                withContext(Dispatchers.IO) {
+                                    thumb = if (thumbPath != null) BitmapFactory.decodeFile(thumbPath)
+                                        .asImageBitmap() else null
+                                }
+                            }
+
+                            Image(
+                                thumb ?: failedThumbnailIcon(this@AlbumsActivity),
+                                null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .aspectRatio(1f)
+                                    .padding(2.dp)
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .combinedClickable(
+                                        onClick = {
+                                            if (isVideo)
+                                                openVideo(folderPhotoVideos[i], this@AlbumsActivity)
+                                            else
+                                                openPhoto(folderPhotoVideos[i], this@AlbumsActivity)
+                                        }
+                                    )
+                            )
+                        }
                     }
                 }
             }

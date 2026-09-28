@@ -117,7 +117,7 @@ class SettingsActivity : ComponentActivity() {
 
 @Composable
 private fun MainSettings(paddingValues: PaddingValues) {
-    val count = 6
+    val count = 5
 
     LazyColumn(
         contentPadding = paddingValues,
@@ -135,7 +135,6 @@ private fun MainSettings(paddingValues: PaddingValues) {
                             2 -> Settings.inAppPhotoViewer
                             3 -> Settings.onlyShowDCIM
                             4 -> Settings.trashInstead
-                            5 -> Settings.useMediaStoreDelete
                             else -> throw Exception()
                         },
                         { v ->
@@ -145,14 +144,12 @@ private fun MainSettings(paddingValues: PaddingValues) {
                                 2 -> Settings.inAppPhotoViewer = v
                                 3 -> Settings.onlyShowDCIM = v
                                 4 -> Settings.trashInstead = v
-                                5 -> Settings.useMediaStoreDelete = v
                             }
                             Settings.save()
                         },
                         modifier = Modifier.padding(vertical = 10.dp),
                         enabled = when(i) {
                             0 -> Settings.inAppPhotoViewer
-                            5 -> false
                             1 -> false
                             else -> true
                         },
@@ -167,7 +164,6 @@ private fun MainSettings(paddingValues: PaddingValues) {
                         2 -> stringResource(R.string.s_in_app_image_viewer)
                         3 -> stringResource(R.string.s_only_show_dcim)
                         4 -> stringResource(R.string.s_trash_instead)
-                        5 -> stringResource(R.string.s_mediastore_deleting)
                         else -> throw Exception()
                     }
                 )

@@ -1,6 +1,7 @@
 package mb28.monoP.ui.components
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
@@ -77,9 +78,8 @@ private const val QMARKS3 = "???"
 @SuppressLint("SdCardPath")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ViewerBottomDrawer(path: String, modifier: Modifier) {
-    val context = LocalActivity.current!!
-    val exif = ExifInterface(path)
+fun ViewerBottomDrawer(path: String, context: Activity, modifier: Modifier = Modifier) {
+    val exif = remember { ExifInterface(path) }
     val padding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val st = rememberBottomSheetScaffoldState()
     val isInFavorites = remember { mutableStateOf(Settings.favorites.contains(path)) }

@@ -10,136 +10,99 @@ import android.net.Uri
 import android.provider.MediaStore
 import android.util.Size
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.drawable.toBitmap
 import androidx.exifinterface.media.ExifInterface
-import mb28.monoP.EXTRA_PATH
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import mb28.monoP.PhotoViewerActivity
 import mb28.monoP.R
 import mb28.monoP.core.Settings.inAppPhotoViewer
 import java.io.File
 import java.io.FileOutputStream
 
-
-data class Photo(
-    val uri : Uri,
-    val path : String,
-    val duration: Long = 0L
+data class Video(
+    val path: String,
+    val duration: Long
 )
 
-
-var folders = mutableStateMapOf<String, MutableList<Photo>>()
-var photosList = mutableStateListOf<Photo>()
-var videosList = mutableStateListOf<Photo>()
-var photosInTrash = mutableStateListOf<Photo>()
+var folders = mutableStateSetOf<String>()
+var photosList = mutableStateListOf<String>()
+var videosList = mutableStateListOf<Video>()
 
 fun refreshPhotosLists(context: Context) {
-    photosList.clear()
-    videosList.clear()
-    folders.clear()
-    videosList.clear()
-    photosInTrash.clear()
-
-    val projection = arrayOf(
-        MediaStore.MediaColumns.DATA,
-        MediaStore.Images.Media._ID,
-        MediaStore.Images.Media.DATE_ADDED,
-        MediaStore.Images.Media.DATE_MODIFIED,
-        MediaStore.Images.Media.DATE_TAKEN,
-    )
-
-    val projectionVideo = arrayOf(
-        MediaStore.MediaColumns.DATA,
-        MediaStore.Video.Media._ID,
-        MediaStore.Video.Media.DURATION,
-        MediaStore.Video.Media.DATE_ADDED,
-        MediaStore.Video.Media.DATE_MODIFIED
-    )
+    val tf = mutableSetOf<String>()
+    val tp = mutableListOf<String>()
+    val tv = mutableListOf<Video>()
 
     context.contentResolver.query(
         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-        projection,
+        arrayOf(MediaStore.MediaColumns.DATA),
         null,
         null,
         Settings.mediaStore_sql_sorting,
 
         )?.use { cursor ->
-        val idc = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
         val pc = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
 
         while (cursor.moveToNext()) {
-            val id = cursor.getLong(idc)
             val path = cursor.getString(pc)
-            val contentUri: Uri = ContentUris.withAppendedId(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                id
-            )
 
-            val p = Photo(contentUri, path)
-            if(Settings.onlyShowDCIM) {
-                if (path.contains("DCIM/")) {
-                    photosList += p
-                }
-            } else {
-                photosList += p
-            }
-            val parentPath = File(path).parent!!
-            if (folders[parentPath] == null) {
-                folders[parentPath] = mutableListOf()
-            }
-            folders[parentPath]!!.add(p)
+            if (Settings.onlyShowDCIM) {
+                if (path.contains("DCIM/")) tp += path
+            } else tp += path
+            File(path).parent?.let { tf.add(it) }
         }
     }
 
     context.contentResolver.query(
         MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-        projectionVideo,
+        arrayOf(
+            MediaStore.MediaColumns.DATA,
+            MediaStore.Video.Media.DURATION
+        ),
         null,
         null,
         "${MediaStore.Video.Media.DATE_ADDED} DESC, ${MediaStore.Video.Media.DATE_MODIFIED} DESC",
         )?.use { cursor ->
-        val idc = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
         val dc = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
         val pc = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
 
         while (cursor.moveToNext()) {
             val duration = cursor.getLong(dc)
             val path = cursor.getString(pc)
-            val id = cursor.getLong(idc)
-            val contentUri: Uri = ContentUris.withAppendedId(
-                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                id
-            )
 
-            val v = Photo(contentUri, path, duration)
+            val v = Video(path, duration)
             if (Settings.onlyShowDCIM) {
-                if (path.contains("DCIM/")) {
-                    videosList += v
-                }
-            } else {
-                videosList += v
-            }
-            val parentPath = File(path).parent!!
-            if (folders[parentPath] == null) {
-                folders[parentPath] = mutableListOf()
-            }
-            folders[parentPath]!!.add(v)
+                if (path.contains("DCIM/")) tv += v
+            } else tv += v
+            File(path).parent?.let { tf.add(it) }
         }
     }
+
+    photosList.clear(); photosList.addAll(tp)
+    videosList.clear(); videosList.addAll(tv)
+    folders.clear(); folders.addAll(tf.sorted())
 }
 
-fun openPhoto(photo: Photo, context: Activity) {
+fun openPhoto(path: String, context: Activity) {
     if (inAppPhotoViewer) {
         val intent = Intent(context, PhotoViewerActivity::class.java)
-            .putExtra(EXTRA_PATH, photo.path)
+            .setData(Uri.fromFile(File(path)))
         context.startActivity(intent)
     } else {
         val intent = Intent(Intent.ACTION_VIEW)
-            .setDataAndType(photo.uri, "image/*")
+            .setDataAndType(getUri(path, context), "image/*")
         context.startActivity(intent)
     }
+}
+
+fun openVideo(path: String, context: Activity) {
+    val intent = Intent(Intent.ACTION_VIEW)
+        .setDataAndType(getUri(path, context), "video/*")
+    context.startActivity(intent)
 }
 
 fun editComment(path: String, comment: String?) {
@@ -176,41 +139,56 @@ fun failedThumbnailIcon(context: Context): ImageBitmap {
     return pFailedThumbnailIcon!!
 }
 
-fun createOrGetThumbnail(path: String): String? {
+suspend fun createOrGetThumbnail(path: String): String? = withContext(Dispatchers.IO)  {
     val pathHash = path.hashCode()
     val thumbnailFile = File("${Settings.appCacheThumbsFolder}/$pathHash.jpeg")
     if (!thumbnailFile.exists()) {
         try {
             thumbnailFile.createNewFile()
             val t = ThumbnailUtils.createImageThumbnail(File(path),
-                Size(500, 500), null)
+                Size(400, 400), null)
             val outputStream = FileOutputStream(thumbnailFile)
             t.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
             outputStream.flush()
             outputStream.close()
         } catch (_: Exception) {
-            return null
+            return@withContext null
         }
     }
-    return if (thumbnailFile.length() > 0) thumbnailFile.path else null
+    return@withContext if (thumbnailFile.length() > 0) thumbnailFile.path else null
 }
 
-fun createOrGetVideoThumbnail(path: String): String? {
+suspend fun createOrGetVideoThumbnail(path: String): String? = withContext(Dispatchers.IO) {
     val pathHash = path.hashCode()
     val thumbnailFile = File("${Settings.appCacheThumbsFolder}/$pathHash.jpeg")
     if (!thumbnailFile.exists()) {
         try {
             thumbnailFile.createNewFile()
             val t = ThumbnailUtils.createVideoThumbnail(File(path),
-                Size(500, 500), null)
+                Size(400, 400), null)
             val outputStream = FileOutputStream(thumbnailFile)
             t.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
             outputStream.flush()
             outputStream.close()
         } catch (_: Exception) {
-            return null
+            return@withContext null
         }
     }
-    return if (thumbnailFile.length() > 0) thumbnailFile.path else null
+    return@withContext if (thumbnailFile.length() > 0) thumbnailFile.path else null
 }
 
+private fun getUri(path: String, context: Context): Uri? {
+    context.contentResolver.query(
+        MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+        arrayOf(MediaStore.Video.Media._ID),
+        "${MediaStore.Video.Media.DATA} = ?",
+        arrayOf(path),
+        null
+    )?.use {
+        if (it.moveToFirst()) {
+            val id = it.getLong(it.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
+            return ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
+        }
+    }
+    return null
+}
