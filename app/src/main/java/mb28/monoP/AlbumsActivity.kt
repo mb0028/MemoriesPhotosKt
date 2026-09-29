@@ -62,6 +62,9 @@ class AlbumsActivity : ComponentActivity() {
         setContent {
             MemoriesPhotosTheme {
                 val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+                var refreshing by remember { mutableStateOf(true) }
+                val folderPhotoVideos = remember { mutableStateListOf<String>() }
+
                 Scaffold(
                     Modifier
                         .fillMaxSize()
@@ -77,13 +80,11 @@ class AlbumsActivity : ComponentActivity() {
                                 scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                             ),
                             title = {
-                                Text(path.substring((path.lastIndexOf("/") + 1)))
+                                Text(path.substring((path.lastIndexOf("/") + 1)) + " (${folderPhotoVideos.count()})")
                             },
                         )
                     },
                 ) { paddingValues ->
-                    var refreshing by remember { mutableStateOf(true) }
-                    val folderPhotoVideos = remember { mutableStateListOf<String>() }
 
                     LaunchedEffect(Unit) {
                         withContext(Dispatchers.IO) {

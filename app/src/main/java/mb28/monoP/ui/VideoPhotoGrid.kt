@@ -17,7 +17,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
@@ -31,24 +33,22 @@ import mb28.monoP.core.createOrGetVideoThumbnail
 import mb28.monoP.core.failedThumbnailIcon
 import mb28.monoP.core.openPhoto
 import mb28.monoP.core.openVideo
-import mb28.monoP.core.photosList
-import mb28.monoP.core.videosList
 
 val photoVideoGridState = LazyGridState()
 
     @Composable
-fun VideoPhotoGrid(padding: PaddingValues, activity: Activity, showVideos: Boolean = false) {
+fun VideoPhotoGrid(padding: PaddingValues, activity: Activity, list: SnapshotStateList<String>, isVideos: Boolean = false) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         contentPadding = PaddingValues(bottom = 250.dp, top = padding.calculateTopPadding()),
         horizontalArrangement = Arrangement.SpaceEvenly,
         state = photoVideoGridState
     ) {
-        items(if (showVideos) videosList.count() else photosList.count()) { i ->
+        items(list.count()) { i ->
             var thumb by remember { mutableStateOf<ImageBitmap?>(null) }
             LaunchedEffect(Unit)  {
-                val thumbPath = if (showVideos) createOrGetVideoThumbnail(videosList[i].path)
-                    else createOrGetThumbnail(photosList[i])
+                val thumbPath = if (isVideos) createOrGetVideoThumbnail(list[i])
+                    else createOrGetThumbnail(list[i])
                 withContext(Dispatchers.IO) {
                     thumb = if (thumbPath != null) BitmapFactory.decodeFile(thumbPath)
                         .asImageBitmap() else null
@@ -64,10 +64,10 @@ fun VideoPhotoGrid(padding: PaddingValues, activity: Activity, showVideos: Boole
                     .clip(RoundedCornerShape(20.dp))
                     .combinedClickable(
                         onClick = {
-                            if (showVideos)
-                                openVideo(videosList[i].path, activity)
+                            if (isVideos)
+                                openVideo(list[i], activity)
                             else
-                                openPhoto(photosList[i], activity)
+                                openPhoto(list[i], activity)
                         }
                     )
             )

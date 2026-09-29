@@ -1,9 +1,7 @@
 package mb28.monoP
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -14,7 +12,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
@@ -59,21 +60,22 @@ import kotlinx.coroutines.launch
 import mb28.monoP.core.Settings
 import mb28.monoP.core.Settings.load
 import mb28.monoP.core.Settings.requestAllFilesAccessOrFinish
+import mb28.monoP.core.photosList
 import mb28.monoP.core.refreshPhotosLists
+import mb28.monoP.core.videosList
 import mb28.monoP.icons.add_a_photo
 import mb28.monoP.icons.arrow_back
 import mb28.monoP.icons.delete_forever
-import mb28.monoP.icons.pageless
+import mb28.monoP.icons.favorite
+import mb28.monoP.icons.heart_plus
 import mb28.monoP.icons.photo_album
 import mb28.monoP.icons.photo_album_filled
 import mb28.monoP.icons.photo_prints
 import mb28.monoP.icons.photo_prints_filled
 import mb28.monoP.icons.settings
 import mb28.monoP.ui.AlbumsPage
-import mb28.monoP.ui.TrashGrid
 import mb28.monoP.ui.VideoPhotoGrid
 import mb28.monoP.ui.photoVideoGridState
-import mb28.monoP.ui.popups.ClearTrashPopup
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -110,15 +112,29 @@ class MainActivity : ComponentActivity() {
                         val visibility = remember { MutableTransitionState(false) }.apply { targetState = true }
                         visibility.targetState = (photoVideoGridState.scrollIndicatorState?.scrollOffset ?: 0) > 500
 
-                        AnimatedVisibility(
-                            visibility,
-                            enter = fadeIn() + scaleIn(),
-                            exit = fadeOut() + scaleOut()
-                        ) {
-                            FloatingActionButton(
-                                { lifecycleScope.launch { photoVideoGridState.scrollToItem(0) } }
+                        Column {
+                            AnimatedVisibility(
+                                visibility,
+                                enter = fadeIn() + scaleIn(),
+                                exit = fadeOut() + scaleOut()
                             ) {
-                                Icon(arrow_back, null)
+                                FloatingActionButton(
+                                    { lifecycleScope.launch { photoVideoGridState.scrollToItem(0) } },
+                                    elevation = FloatingActionButtonDefaults.elevation(0.dp,0.dp,0.dp,0.dp)
+                                ) {
+                                    Icon(arrow_back, null)
+                                }
+                            }
+                            Spacer(Modifier.height(10.dp))
+                            FloatingActionButton(
+                                {
+                                    val intent = Intent(this@MainActivity, Camera::class.java)
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    startActivity(intent)
+                                },
+                                elevation = FloatingActionButtonDefaults.elevation(0.dp,0.dp,0.dp,0.dp)
+                            ) {
+                                Icon(add_a_photo, null)
                             }
                         }
                     },
@@ -129,7 +145,7 @@ class MainActivity : ComponentActivity() {
                                 .padding(bottom = 5.dp),
                             Alignment.BottomCenter
                         ) {
-                            NavBar(selectedIndex, this@MainActivity)
+                            NavBar(selectedIndex)
                         }
                     },
                     topBar = {
@@ -143,28 +159,25 @@ class MainActivity : ComponentActivity() {
                             ),
                             title = { Text(
                                 when(selectedIndex.intValue) {
-                                    -1 -> stringResource(R.string.trash)
                                     0 -> stringResource(R.string.photos)
                                     1 -> stringResource(R.string.videos)
-                                    else -> stringResource(R.string.albums)
+                                    3 -> stringResource(R.string.favorites)
+                                    else -> " "
                                 }
                             ) },
                             actions = {
-                                if (selectedIndex.intValue == -1) {
-                                    var clearDia by remember { mutableStateOf(false) }
-                                    IconButton({
-                                        clearDia = true
-                                    }) { Icon(delete_forever, null) }
-                                    if (clearDia) {
-                                        ClearTrashPopup {
-                                            clearDia = false
-                                            if (it) {
-                                                Toast.makeText(this@MainActivity, "Cleared trash",
-                                                    Toast.LENGTH_SHORT).show()
-                                            }
-                                        }
-                                    }
-                                }
+                                IconButton(
+                                    { selectedIndex.intValue = 3 }
+                                ) { Icon(if (selectedIndex.intValue == 3) favorite else heart_plus, null) }
+
+                                IconButton(
+                                    { startActivity(Intent(this@MainActivity, KodActivity::class.java)) }
+                                ) { Icon(photo_prints, null) }
+
+                                IconButton(
+                                    { startActivity(Intent(this@MainActivity, TrashActivity::class.java)) }
+                                ) { Icon(delete_forever, null) }
+
                                 IconButton({
                                     startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
                                 }) { Icon(settings, null) }
@@ -177,9 +190,9 @@ class MainActivity : ComponentActivity() {
                             ContainedLoadingIndicator()
                         }
                     } else when(selectedIndex.intValue) {
-                        -1 -> TrashGrid(padding, this)
-                        0 -> VideoPhotoGrid(padding, this)
-                        1 -> VideoPhotoGrid(padding, this, true)
+                        0 -> VideoPhotoGrid(padding, this, photosList)
+                        1 -> VideoPhotoGrid(padding, this, videosList,true)
+                        3 -> VideoPhotoGrid(padding, this, Settings.favorites)
                         else -> AlbumsPage(padding, this)
                     }
                 }
@@ -199,7 +212,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun NavBar(selectedIndex: MutableIntState, activity: Activity) {
+fun NavBar(selectedIndex: MutableIntState) {
     val tabs = listOf(stringResource(R.string.photos), stringResource(R.string.videos), stringResource(R.string.albums))
     val icons = remember { listOf(photo_prints, photo_prints, photo_album) }
     val sIcons = remember { listOf(photo_prints_filled, photo_prints_filled, photo_album_filled) }
@@ -209,28 +222,12 @@ fun NavBar(selectedIndex: MutableIntState, activity: Activity) {
         contentPadding = PaddingValues(horizontal = 5.dp),
         colors =  FloatingToolbarDefaults.standardFloatingToolbarColors(
             MaterialTheme.colorScheme.surfaceContainerLowest.copy(0.95f)
-        ),
-        leadingContent = {
-            IconButton(
-                { selectedIndex.intValue = -1 }
-            ) { Icon(delete_forever, null) }
-        },
-        trailingContent = {
-            IconButton(
-                {
-                    val intent = Intent(activity, Camera::class.java)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    activity.startActivity(intent)
-                }
-            ) {
-                Icon(add_a_photo, null)
-            }
-        }
+        )
     ) {
         tabs.forEachIndexed { i, item ->
             ShortNavigationBarItem(
                 selected = selectedIndex.intValue == i,
-                iconPosition = NavigationItemIconPosition.Top,
+                iconPosition = NavigationItemIconPosition.Start,
                 icon = {
                     Icon(
                         if (selectedIndex.intValue == i) sIcons[i] else icons[i],

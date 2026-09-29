@@ -37,4 +37,6 @@
     <string name="open_settings">Open Settings</string>
     <string name="videos">Videos</string>
     <string name="title_activity_albums">AlbumsActivity</string>
+    <string name="title_activity_trash">TrashActivity</string>
+    <string name="title_activity_kod">KodActivity</string>
 </resources>

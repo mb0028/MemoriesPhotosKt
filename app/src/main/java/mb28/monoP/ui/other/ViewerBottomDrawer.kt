@@ -2,6 +2,7 @@ package mb28.monoP.ui.other
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
@@ -49,6 +50,7 @@ import mb28.monoP.icons.favorite
 import mb28.monoP.icons.heart_plus
 import mb28.monoP.R
 import mb28.monoP.core.Settings
+import mb28.monoP.core.getUriImage
 import mb28.monoP.icons.add_2
 import mb28.monoP.icons.camera
 import mb28.monoP.icons.comic_bubble
@@ -105,7 +107,15 @@ fun ViewerBottomDrawer(path: String, activity: Activity, modifier: Modifier = Mo
                     Icon(delete_forever, stringResource(R.string.delete))
                 }
                 IconButton({
+                    val intent = Intent(Intent.ACTION_EDIT)
+                        .setDataAndType(getUriImage(path, activity)!!, "image/*")
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    try {
 
+                    } catch (e: ActivityNotFoundException) {
+                        Toast.makeText(activity, "No app found to edit", Toast.LENGTH_SHORT).show()
+                    }
+                    activity.startActivity(intent)
                 }) {
                     Icon(draw, null)
                 }

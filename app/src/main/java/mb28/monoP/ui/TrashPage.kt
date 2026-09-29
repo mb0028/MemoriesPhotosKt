@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,23 +30,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import mb28.monoP.core.TRASH_NAME
 import mb28.monoP.core.createOrGetThumbnail
-import mb28.monoP.core.createOrGetVideoThumbnail
 import mb28.monoP.core.failedThumbnailIcon
 import mb28.monoP.core.openPhoto
-import mb28.monoP.core.openVideo
+import mb28.monoP.core.restore
 import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
 
 
 var photosInTrash = mutableStateListOf<String>()
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun TrashGrid(padding: PaddingValues, activity: Activity, showVideos: Boolean = false) {
+fun TrashGrid(padding: PaddingValues, activity: Activity) {
     var refreshing by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
@@ -69,11 +74,16 @@ fun TrashGrid(padding: PaddingValues, activity: Activity, showVideos: Boolean = 
             contentPadding = PaddingValues(bottom = 250.dp, top = padding.calculateTopPadding()),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
+            item {  }
+            item {
+                Text("Click to restore\nHold to view\n", textAlign = TextAlign.Center)
+            }
+            item {  }
+
             items(photosInTrash.count()) { i ->
                 var thumb by remember { mutableStateOf<ImageBitmap?>(null) }
                 LaunchedEffect(Unit)  {
-                    val thumbPath = if (showVideos) createOrGetVideoThumbnail(photosInTrash[i])
-                    else createOrGetThumbnail(photosInTrash[i])
+                    val thumbPath = createOrGetThumbnail(photosInTrash[i])
                     withContext(Dispatchers.IO) {
                         thumb = if (thumbPath != null) BitmapFactory.decodeFile(thumbPath)
                             .asImageBitmap() else null
@@ -89,10 +99,19 @@ fun TrashGrid(padding: PaddingValues, activity: Activity, showVideos: Boolean = 
                         .clip(RoundedCornerShape(20.dp))
                         .combinedClickable(
                             onClick = {
-                                if (showVideos)
-                                    openVideo(photosInTrash[i], activity)
-                                else
-                                    openPhoto(photosInTrash[i], activity)
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    restore(photosInTrash[i])
+                                    val n = photosInTrash.toMutableList().apply {
+                                        removeAt(i)
+                                    }
+                                    photosInTrash.clear()
+                                    delay(50.milliseconds)
+                                    photosInTrash.addAll(n)
+                                }
+
+                            },
+                            onLongClick = {
+                                openPhoto(photosInTrash[i], activity)
                             }
                         )
                 )

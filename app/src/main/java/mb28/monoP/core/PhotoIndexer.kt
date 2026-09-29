@@ -5,6 +5,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.media.ThumbnailUtils
 import android.net.Uri
 import android.provider.MediaStore
@@ -23,19 +24,14 @@ import mb28.monoP.core.Settings.inAppPhotoViewer
 import java.io.File
 import java.io.FileOutputStream
 
-data class Video(
-    val path: String,
-    val duration: Long
-)
-
 var folders = mutableStateSetOf<String>()
 var photosList = mutableStateListOf<String>()
-var videosList = mutableStateListOf<Video>()
+var videosList = mutableStateListOf<String>()
 
 fun refreshPhotosLists(context: Context) {
     val tf = mutableSetOf<String>()
     val tp = mutableListOf<String>()
-    val tv = mutableListOf<Video>()
+    val tv = mutableListOf<String>()
 
     context.contentResolver.query(
         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
@@ -59,25 +55,19 @@ fun refreshPhotosLists(context: Context) {
 
     context.contentResolver.query(
         MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-        arrayOf(
-            MediaStore.MediaColumns.DATA,
-            MediaStore.Video.Media.DURATION
-        ),
+        arrayOf(MediaStore.MediaColumns.DATA),
         null,
         null,
         "${MediaStore.Video.Media.DATE_ADDED} DESC, ${MediaStore.Video.Media.DATE_MODIFIED} DESC",
         )?.use { cursor ->
-        val dc = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
         val pc = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
 
         while (cursor.moveToNext()) {
-            val duration = cursor.getLong(dc)
             val path = cursor.getString(pc)
 
-            val v = Video(path, duration)
             if (Settings.onlyShowDCIM) {
-                if (path.contains("DCIM/")) tv += v
-            } else tv += v
+                if (path.contains("DCIM/")) tv += path
+            } else tv += path
             File(path).parent?.let { tf.add(it) }
         }
     }
@@ -128,7 +118,25 @@ fun deleteOrTrash(path: String) {
 }
 
 fun restore(path: String) {
-    File(path).renameTo(File(path.removePrefix(TRASH_NAME)))
+    File(path).renameTo(File(path.replaceFirst(TRASH_NAME, "")))
+}
+
+fun Bitmap.applyExifRotation(path: String) : Bitmap {
+    val exifR = when (ExifInterface(path).getAttributeInt(ExifInterface.TAG_ORIENTATION, -1)) {
+        -1 -> -1f
+        ExifInterface.ORIENTATION_ROTATE_90 -> 90f
+        ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+        ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+        else -> 0f
+    }
+    if (exifR == -1f)
+        return this
+
+    val rotation = Matrix().apply {
+        postRotate(exifR)
+    }
+    return Bitmap.createBitmap(this, 0, 0, width, height,
+        rotation, true)
 }
 
 private var pFailedThumbnailIcon: ImageBitmap? = null

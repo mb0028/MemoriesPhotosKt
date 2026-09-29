@@ -2,11 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="AllFilesAccessPolicy,ScopedStorage" />
 
     <application
@@ -19,7 +22,6 @@
         android:roundIcon="@mipmap/app_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.MemoriesPhotos">
-
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -28,11 +30,11 @@
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.APP_GALLERY" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".Camera"
             android:exported="true"
@@ -44,17 +46,16 @@
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".PhotoViewerActivity"
             android:exported="false"
             android:label="@string/title_activity_photo_viewer"
             android:theme="@style/Theme.MemoriesPhotos"
             android:windowSoftInputMode="adjustResize" />
-
         <activity
             android:name=".SettingsActivity"
             android:exported="true"
@@ -65,11 +66,22 @@
                 <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".AlbumsActivity"
             android:exported="false"
             android:label="@string/title_activity_albums"
+            android:theme="@style/Theme.MemoriesPhotos"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".TrashActivity"
+            android:exported="false"
+            android:label="@string/title_activity_trash"
+            android:theme="@style/Theme.MemoriesPhotos"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".KodActivity"
+            android:exported="false"
+            android:label="@string/title_activity_kod"
             android:theme="@style/Theme.MemoriesPhotos"
             android:windowSoftInputMode="adjustResize" />
     </application>

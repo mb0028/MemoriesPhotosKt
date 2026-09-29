@@ -3,13 +3,13 @@ package mb28.monoP
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Matrix
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -22,12 +22,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
@@ -36,9 +38,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.exifinterface.media.ExifInterface
 import mb28.monoP.core.Settings
 import mb28.monoP.core.Settings.allowRotationGesture
+import mb28.monoP.core.applyExifRotation
 import mb28.monoP.ui.other.ViewerBottomDrawer
 import mb28.monoP.ui.other.ViewerTopAppBar
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
@@ -57,37 +59,31 @@ class PhotoViewerActivity : ComponentActivity() {
         val p = intent.data?.path
         if (p == null) finish()
 
-        val t = BitmapFactory.decodeFile(p!!)
-        val rotation = Matrix().apply {
-            val exifR = when (ExifInterface(p).getAttributeInt(ExifInterface.TAG_ORIENTATION, 0)) {
-                ExifInterface.ORIENTATION_ROTATE_90 -> 90f
-                ExifInterface.ORIENTATION_ROTATE_180 -> 180f
-                ExifInterface.ORIENTATION_ROTATE_270 -> 270f
-                else -> 0f
-            }
-            postRotate(exifR)
-        }
-        val photo = Bitmap.createBitmap(t, 0, 0, t.width, t.height,
-            rotation, true).asImageBitmap()
+        val photo = BitmapFactory.decodeFile(p!!).applyExifRotation(p).asImageBitmap()
 
         super.onCreate(savedInstanceState)
         setContent {
             MemoriesPhotosTheme {
+                val hideUI = remember { mutableStateOf(false) }
+                val hideUIAlpha by animateFloatAsState(if (hideUI.value) 0f else 1f)
+                val hideUIBg by animateColorAsState(if (hideUI.value) MaterialTheme.colorScheme.inverseSurface
+                    else MaterialTheme.colorScheme.surfaceBright)
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    containerColor = MaterialTheme.colorScheme.surfaceBright,
+                    containerColor = hideUIBg,
                     topBar = {
                         ViewerTopAppBar(p, this,
                             Modifier.statusBarsPadding().padding(top = 5.dp)
                                 .padding(horizontal = 15.dp)
                                 .fillMaxWidth()
+                                .alpha(hideUIAlpha)
                         )
                     },
                     bottomBar = {
-                        ViewerBottomDrawer(p, this)
+                        ViewerBottomDrawer(p, this, Modifier.alpha(hideUIAlpha))
                     }
                 ) {
-                    PinchToZoomView(photo)
+                    PinchToZoomView(photo, hideUI)
                 }
             }
         }
@@ -96,7 +92,7 @@ class PhotoViewerActivity : ComponentActivity() {
 
 
 @Composable
-private fun PinchToZoomView(path: ImageBitmap) {
+private fun PinchToZoomView(path: ImageBitmap, hideUI: MutableState<Boolean>) {
     var scale by remember { mutableFloatStateOf(1f) }
     var rotation by remember { mutableFloatStateOf(0f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
@@ -113,6 +109,9 @@ private fun PinchToZoomView(path: ImageBitmap) {
             }
             .pointerInput(Unit) {
                 detectTapGestures(
+                    onTap = {
+                        hideUI.value = !hideUI.value
+                    },
                     onDoubleTap = {
                         scale = if (scale == 1f) 2f else 1f
                         offset = Offset.Zero
