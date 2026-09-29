@@ -12,16 +12,22 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mb28.monoP.icons.arrow_back
 import mb28.monoP.core.getComment
 import mb28.monoP.icons.more_vert
+import mb28.monoP.ui.popups.PhotoMoreActionPopup
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ViewerTopAppBar(path: String, activity: Activity, modifier: Modifier) {
+    var moreActionsDia by remember { mutableStateOf(false) }
     HorizontalFloatingToolbar(
         expanded = true,
         modifier = modifier,
@@ -43,9 +49,7 @@ fun ViewerTopAppBar(path: String, activity: Activity, modifier: Modifier) {
             }
         },
         trailingContent = {
-            IconButton({
-
-            }) {
+            IconButton({ moreActionsDia = true }) {
                 Icon(more_vert, null)
             }
         }
@@ -57,4 +61,11 @@ fun ViewerTopAppBar(path: String, activity: Activity, modifier: Modifier) {
             modifier = Modifier.fillMaxWidth(0.8f)
         )
     }
+
+    if (moreActionsDia) {
+        PhotoMoreActionPopup(path) {
+            moreActionsDia = false
+        }
+    }
+
 }

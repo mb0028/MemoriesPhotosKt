@@ -16,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -25,14 +26,12 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -50,6 +49,7 @@ import mb28.monoP.icons.info
 import mb28.monoP.icons.photo_camera_back
 import mb28.monoP.icons.photo_camera_front
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
+import kotlin.math.roundToInt
 
 const val EXTRA_SHOW_CAMERA_SETTINGS = "EXTRA_SHOW_CAMERA_SETTINGS"
 
@@ -331,6 +331,30 @@ private fun CameraSettings(paddingValues: PaddingValues) {
                         fontSize = 14.sp
                     )
                 }
+            }
+        }
+
+        item {
+            val state = rememberSliderState(
+                Settings.timelapseInterval.toFloat(),
+                trackRange = 5f..120f
+            )
+            ListItem(
+                supportingContent = {
+                    Slider(
+                        state,
+                        {
+                            state.value = it.roundToInt().toFloat()
+                            Settings.timelapseInterval = state.value.roundToInt()
+                        },
+                        onValueChangeFinished = {
+                            Settings.timelapseInterval = state.value.roundToInt()
+                            Settings.save()
+                        }
+                    )
+                }
+            ) {
+                Text("Timelapse capture interval:  ${Settings.timelapseInterval}")
             }
         }
 

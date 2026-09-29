@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.camera.core.AspectRatio
@@ -19,9 +20,10 @@ import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +32,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -37,10 +40,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,8 +56,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -68,8 +73,10 @@ import kotlinx.coroutines.launch
 import mb28.monoP.core.Settings
 import mb28.monoP.core.Settings.load
 import mb28.monoP.core.Settings.requestAllFilesAccessOrFinish
+import mb28.monoP.core.Timelapse
 import mb28.monoP.icons.flip_camera_android
 import mb28.monoP.icons.photo_prints
+import mb28.monoP.icons.settings_photo_camera
 import mb28.monoP.ui.camera.CameraAppBar
 import mb28.monoP.ui.camera.CameraPermissionPage
 import mb28.monoP.ui.camera.ShutterButton
@@ -78,7 +85,11 @@ import java.io.File
 import java.time.LocalDateTime
 
 private const val MAKER_NOTE_P = "Captured with Memories Photos"
+
 private lateinit var cameraController: LifecycleCameraController
+private lateinit var timelapse: Timelapse
+var timelapseMode by mutableStateOf(false)
+
 class Camera : ComponentActivity() {
     @androidx.annotation.OptIn(ExperimentalZeroShutterLag::class)
     @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -103,20 +114,55 @@ class Camera : ComponentActivity() {
         cameraController.bindToLifecycle(this)
         previewView.controller = cameraController
 
+        timelapse = Timelapse(cameraController)
 
         setContent {
             MemoriesPhotosTheme {
                 val interactionSource = remember { MutableInteractionSource() }
-//                val isShutterPressed by interactionSource.collectIsPressedAsState()
-//                val uiScale: Float by animateFloatAsState(
-//                    if (isShutterPressed) 0.95f else 1f
-//                )
+
+                if (timelapseMode) {
+                    BackHandler { }
+                }
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
+                    containerColor = if (timelapse.isStarted) Color.Black
+                        else MaterialTheme.colorScheme.surfaceBright,
                     topBar = {
-                        CameraAppBar(this, cameraController) {
-                            changeAspect(it)
+                        if (timelapseMode) {
+                            Column {
+                                val animTimelapseProg by animateFloatAsState(
+                                    if (timelapse.time > 0f) (timelapse.time / Settings.timelapseInterval) else 0f,
+                                    TweenSpec(250, easing = LinearEasing)
+                                )
+
+                                TopAppBar(
+                                    {
+                                        Text(
+                                            "Timelapse${if (timelapse.isStarted) " • Captured ${timelapse.takeNum.toString()
+                                                .padStart(3,'0')}" else ""}",
+                                            color = if (timelapse.isStarted) Color.White
+                                                else MaterialTheme.colorScheme.onSurfaceVariant
+                                        ) },
+                                    colors = TopAppBarDefaults.topAppBarColors(
+                                        if (timelapse.isStarted) Color.Black
+                                        else MaterialTheme.colorScheme.surfaceBright
+                                    ),
+                                    actions = {
+                                        IconButton({ timelapseMode = false },
+                                            enabled = !timelapse.isStarted) { Icon(
+                                            settings_photo_camera, null) }
+                                    }
+                                )
+                                LinearProgressIndicator(
+                                    { animTimelapseProg },
+                                    Modifier.fillMaxWidth().offset(y = (-8).dp).padding(horizontal = 10.dp)
+                                )
+                            }
+                        } else {
+                            CameraAppBar(this, cameraController) {
+                                changeAspect(it)
+                            }
                         }
                     },
                     bottomBar = {
@@ -147,11 +193,13 @@ class Camera : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        cameraController.imageCaptureMode = Settings.imageCaptureMode
-        cameraController.imageCaptureFlashMode = Settings.imageCaptureFlashMode
-        when (Settings.startCameraMode) {
-            0 -> cameraController.cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-            1 -> cameraController.cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+        if (!timelapse.isStarted) {
+            cameraController.imageCaptureMode = Settings.imageCaptureMode
+            cameraController.imageCaptureFlashMode = Settings.imageCaptureFlashMode
+            when (Settings.startCameraMode) {
+                0 -> cameraController.cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+                1 -> cameraController.cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+            }
         }
     }
 }
@@ -167,7 +215,7 @@ fun ShutterRow(interactionSource:  MutableInteractionSource, context: Activity) 
         Arrangement.Center,
         Alignment.CenterHorizontally
     ) {
-        if (Settings.addCommentAfterCapture) {
+        if (Settings.addCommentAfterCapture && !timelapseMode) {
             TextField(
                 lastComment,
                 { lastComment = it },
@@ -200,23 +248,38 @@ fun ShutterRow(interactionSource:  MutableInteractionSource, context: Activity) 
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                {
-                    context.startActivity(
-                        Intent(context, MainActivity::class.java)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (!timelapseMode) {
+                IconButton(
+                    {
+                        context.startActivity(
+                            Intent(context, MainActivity::class.java)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    },
+                    modifier = Modifier.size(65.dp)
+                ) {
+                    Icon(
+                        photo_prints,
+                        null,
+                        modifier = Modifier.fillMaxSize(0.65f)
                     )
-                },
-                modifier = Modifier.size(65.dp)
-            ) {
-                Icon(
-                    photo_prints,
-                    null,
-                    modifier = Modifier.fillMaxSize(0.65f)
-                )
+                }
             }
+
             ShutterButton(interactionSource) {
                 scope.launch {
+                    if (timelapseMode) {
+                        if (timelapse.isStarted) {
+                            timelapse.stop()
+                            context.window.decorView.keepScreenOn = false
+                        } else {
+                            timelapse.start {
+                                context.window.decorView.keepScreenOn = true
+                            }
+                        }
+                        return@launch
+                    }
+
                     val t = LocalDateTime.now()
                     val outputOptions = ImageCapture.OutputFileOptions.Builder(
                         File(Settings.appFolder, "Photo ${t.year}-${t.monthValue.toString().padStart(2, '0')}" +
@@ -256,23 +319,27 @@ fun ShutterRow(interactionSource:  MutableInteractionSource, context: Activity) 
                     )
                 }
             }
-            IconButton(
-                {
-                    when (cameraController.cameraSelector) {
-                        CameraSelector.DEFAULT_BACK_CAMERA -> cameraController.cameraSelector =
-                            CameraSelector.DEFAULT_FRONT_CAMERA
-                        CameraSelector.DEFAULT_FRONT_CAMERA -> cameraController.cameraSelector =
-                            CameraSelector.DEFAULT_BACK_CAMERA
-                    }
-                },
-                modifier = Modifier.size(65.dp)
-            ) {
-                Icon(
-                    flip_camera_android,
-                    null,
-                    modifier = Modifier.fillMaxSize(0.65f)
-                )
+
+            if (!timelapseMode) {
+                IconButton(
+                    {
+                        when (cameraController.cameraSelector) {
+                            CameraSelector.DEFAULT_BACK_CAMERA -> cameraController.cameraSelector =
+                                CameraSelector.DEFAULT_FRONT_CAMERA
+                            CameraSelector.DEFAULT_FRONT_CAMERA -> cameraController.cameraSelector =
+                                CameraSelector.DEFAULT_BACK_CAMERA
+                        }
+                    },
+                    modifier = Modifier.size(65.dp)
+                ) {
+                    Icon(
+                        flip_camera_android,
+                        null,
+                        modifier = Modifier.fillMaxSize(0.65f)
+                    )
+                }
             }
+
         }
     }
 }

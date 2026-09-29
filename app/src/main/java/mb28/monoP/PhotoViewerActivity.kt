@@ -5,17 +5,18 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Image
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,7 +30,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
@@ -38,9 +38,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import mb28.monoP.core.Settings
 import mb28.monoP.core.Settings.allowRotationGesture
 import mb28.monoP.core.applyExifRotation
+import mb28.monoP.ui.other.InfinityImage
 import mb28.monoP.ui.other.ViewerBottomDrawer
 import mb28.monoP.ui.other.ViewerTopAppBar
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
@@ -65,7 +67,7 @@ class PhotoViewerActivity : ComponentActivity() {
         setContent {
             MemoriesPhotosTheme {
                 val hideUI = remember { mutableStateOf(false) }
-                val hideUIAlpha by animateFloatAsState(if (hideUI.value) 0f else 1f)
+                val hideUIPos by animateDpAsState(if (hideUI.value) 150.dp else 0.dp)
                 val hideUIBg by animateColorAsState(if (hideUI.value) MaterialTheme.colorScheme.inverseSurface
                     else MaterialTheme.colorScheme.surfaceBright)
                 Scaffold(
@@ -76,14 +78,14 @@ class PhotoViewerActivity : ComponentActivity() {
                             Modifier.statusBarsPadding().padding(top = 5.dp)
                                 .padding(horizontal = 15.dp)
                                 .fillMaxWidth()
-                                .alpha(hideUIAlpha)
+                                .offset(y = -hideUIPos)
                         )
                     },
                     bottomBar = {
-                        ViewerBottomDrawer(p, this, Modifier.alpha(hideUIAlpha))
+                        ViewerBottomDrawer(p, this, Modifier.offset(y = hideUIPos))
                     }
                 ) {
-                    PinchToZoomView(photo, hideUI)
+                    PinchToZoomView(photo, hideUI, window)
                 }
             }
         }
@@ -92,7 +94,7 @@ class PhotoViewerActivity : ComponentActivity() {
 
 
 @Composable
-private fun PinchToZoomView(path: ImageBitmap, hideUI: MutableState<Boolean>) {
+private fun PinchToZoomView(path: ImageBitmap, hideUI: MutableState<Boolean>, window: Window) {
     var scale by remember { mutableFloatStateOf(1f) }
     var rotation by remember { mutableFloatStateOf(0f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
@@ -111,6 +113,9 @@ private fun PinchToZoomView(path: ImageBitmap, hideUI: MutableState<Boolean>) {
                 detectTapGestures(
                     onTap = {
                         hideUI.value = !hideUI.value
+                        val controller = WindowCompat.getInsetsController(window, window.decorView)
+                        controller.isAppearanceLightNavigationBars = !hideUI.value
+                        controller.isAppearanceLightStatusBars = !hideUI.value
                     },
                     onDoubleTap = {
                         scale = if (scale == 1f) 2f else 1f
@@ -127,12 +132,12 @@ private fun PinchToZoomView(path: ImageBitmap, hideUI: MutableState<Boolean>) {
                 translationY = offset.y,
             )
     ) {
-        Image(
+        InfinityImage(
             path,
-            contentDescription = null,
+//            contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.FillWidth,
-            filterQuality = if (Settings.useBilinear) FilterQuality.High else FilterQuality.None
+            filterQuality = if (Settings.useBilinear) FilterQuality.Medium else FilterQuality.None
         )
     }
 }

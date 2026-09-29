@@ -20,11 +20,10 @@ import java.io.File
 
 @SuppressLint("SdCardPath")
 object Settings {
-
-    const val appFolder = "/sdcard/DCIM/Memories Photos"
-    const val appCacheFolder = "/sdcard/DCIM/Memories Photos/.temp"
-    const val appCacheThumbsFolder = "/sdcard/DCIM/Memories Photos/.temp/Thumbnails"
-    const val settingsFile = "$appFolder/Settings/Settings.txt"
+    var appFolder by mutableStateOf("/sdcard/DCIM/Memories Photos")
+    var appCacheFolder = "${appFolder}/.cache"
+    var appCacheThumbsFolder = "${appCacheFolder}/Thumbnails"
+    var settingsFile = "$appFolder/Settings/Settings.txt"
 
     val favorites = mutableStateListOf<String>()
     var specialSectionsCount by mutableIntStateOf(10)
@@ -41,7 +40,11 @@ object Settings {
     var imageCaptureFlashMode by mutableIntStateOf(2)
     var startCameraMode by mutableIntStateOf(0)
     var cameraAspect by mutableIntStateOf(0)
-    var useBilinear by mutableStateOf(false)
+
+
+    var timelapseInterval by mutableIntStateOf(15)
+
+    var useBilinear by mutableStateOf(true)
     var mediaStore_sql_sorting by mutableStateOf("${MediaStore.Images.Media.DATE_ADDED} DESC, ${MediaStore.Images.Media.DATE_MODIFIED} DESC, ${MediaStore.Images.Media.DATE_TAKEN} DESC")
 
     fun load() {
@@ -79,6 +82,7 @@ object Settings {
                     s.startsWith("[Cam Aspect]") -> cameraAspect = s.removePrefix("[Cam Aspect]").toInt().coerceIn(0, 4)
                     s.startsWith("[Sorting]") -> mediaStore_sql_sorting = s.removePrefix("[Sorting]")
                     s.startsWith("[Use Bilinear]") -> useBilinear = s.removePrefix("[Use Bilinear]").toBooleanStrict()
+                    s.startsWith("[Timelapse interval]") -> timelapseInterval = s.removePrefix("[Timelapse interval]").toInt()
                 }
             }
         } else {
@@ -98,6 +102,7 @@ object Settings {
         data += "[SSC]$specialSectionsCount\n"
         data += "[Sorting]$mediaStore_sql_sorting\n"
         data += "[Use Bilinear]$useBilinear\n"
+        data += "[Timelapse interval]$timelapseInterval\n"
 
         data += "\n[Camera Settings]\n"
         data += "[Cam Lock Focus]$lockFocusWithShutter\n"

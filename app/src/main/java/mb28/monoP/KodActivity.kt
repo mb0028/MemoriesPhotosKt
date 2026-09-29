@@ -40,12 +40,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import mb28.monoP.core.Settings
-import mb28.monoP.core.deleteOrTrash
 import mb28.monoP.core.applyExifRotation
+import mb28.monoP.core.deleteOrTrash
 import mb28.monoP.core.photosList
 import mb28.monoP.icons.arrow_back
 import mb28.monoP.icons.delete_forever

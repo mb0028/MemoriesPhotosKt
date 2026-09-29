@@ -44,8 +44,6 @@ import mb28.monoP.core.createOrGetVideoThumbnail
 import mb28.monoP.core.failedThumbnailIcon
 import mb28.monoP.core.openPhoto
 import mb28.monoP.core.openVideo
-import mb28.monoP.core.photosList
-import mb28.monoP.core.videosList
 import mb28.monoP.ui.theme.MemoriesPhotosTheme
 import java.io.File
 

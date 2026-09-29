@@ -30,6 +30,7 @@ import mb28.monoP.icons.flash_on
 import mb28.monoP.icons.fullscreen_portrait
 import mb28.monoP.icons.no_flash
 import mb28.monoP.icons.settings_photo_camera
+import mb28.monoP.timelapseMode
 
 @Composable
 fun CameraAppBar(
@@ -58,6 +59,8 @@ fun CameraAppBar(
             }
         },
         actions = {
+            IconButton({ timelapseMode = true }) { Icon(settings_photo_camera, null) }
+
             var aspect by remember { mutableIntStateOf(Settings.cameraAspect) }
             IconButton(
                 {
