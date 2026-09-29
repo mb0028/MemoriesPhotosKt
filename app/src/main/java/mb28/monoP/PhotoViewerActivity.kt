@@ -3,7 +3,9 @@ package mb28.monoP
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -34,6 +36,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.exifinterface.media.ExifInterface
 import mb28.monoP.core.Settings
 import mb28.monoP.core.Settings.allowRotationGesture
 import mb28.monoP.ui.other.ViewerBottomDrawer
@@ -54,7 +57,18 @@ class PhotoViewerActivity : ComponentActivity() {
         val p = intent.data?.path
         if (p == null) finish()
 
-        val photo = BitmapFactory.decodeFile(p!!).asImageBitmap()
+        val t = BitmapFactory.decodeFile(p!!)
+        val rotation = Matrix().apply {
+            val exifR = when (ExifInterface(p).getAttributeInt(ExifInterface.TAG_ORIENTATION, 0)) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> 90f
+                ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+                ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+                else -> 0f
+            }
+            postRotate(exifR)
+        }
+        val photo = Bitmap.createBitmap(t, 0, 0, t.width, t.height,
+            rotation, true).asImageBitmap()
 
         super.onCreate(savedInstanceState)
         setContent {
