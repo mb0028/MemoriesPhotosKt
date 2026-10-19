@@ -3,7 +3,7 @@
 Gallery & Camera app for android
 
 > [!Note]
-> Development is in progress
+> Development stopped
 
 Features:
 - 🖼️ Material 3 Expressive design
